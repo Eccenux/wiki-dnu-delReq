@@ -42,12 +42,12 @@ var DelReqHandler =
 	  window, so that the user may enter an additional comment.
 	  ------------------------------------------------------------------------------------------*/
 
-	lupo_close_del     : 'close_del',
-	lupo_close_keep    : 'close_keep',
-	lupo_close_no_result : 'close_no_result',
-	lupo_close_repaired : 'close_repaired',
-	lupo_close_eject   : 'close_eject',
-	lupo_move_reanimation : 'move_reanimation',
+	fakeaction_close_del     : 'close_del',
+	fakeaction_close_keep    : 'close_keep',
+	fakeaction_close_no_result : 'close_no_result',
+	fakeaction_close_repaired : 'close_repaired',
+	fakeaction_close_eject   : 'close_eject',
+	fakeaction_move_reanimation : 'move_reanimation',
 	close_del_summary  : 'Usunięto.',
 	close_keep_summary : 'Zostawiono.',
 	close_no_result_summary : 'Nie osiągnięto konsensusu.',
@@ -174,23 +174,23 @@ var DelReqHandler =
 		var items = [];
 	
 		if (isAdmin) {
-			items.push(this.createActionButton(this.actionMap.delete, {label: 'Usuń', icon: 'trash', flags: 'destructive', framed: false}, dnuTemplate, subpage, this.lupo_close_del));
+			items.push(this.createActionButton(this.actionMap.delete, {label: 'Usuń', icon: 'trash', flags: 'destructive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_del));
 		}
 	
 		if (!this.isSubpage('reanimacja', subpage)) {
-			items.push(this.createActionButton(this.actionMap.keep, {label: 'zostaw', icon: 'articleCheck', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.lupo_close_keep));
-			items.push(this.createActionButton(this.actionMap.noResult, {label: 'brak wyniku', icon: 'help', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.lupo_close_no_result));
+			items.push(this.createActionButton(this.actionMap.keep, {label: 'zostaw', icon: 'articleCheck', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_keep));
+			items.push(this.createActionButton(this.actionMap.noResult, {label: 'brak wyniku', icon: 'help', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_no_result));
 			items.push(this.createActionButton(this.actionMap.toArchive, {label: 'do arch.', icon: 'tray', flags: 'progressive', framed: false}, dnuTemplate, subpage, ''));
 			items.push(this.createActionButton(this.actionMap.reject, {label: 'wycofaj', icon: 'undo', flags: 'progressive', framed: false}, dnuTemplate, subpage, ''));
 			items.push(this.createActionButton(this.actionMap.draft, {label: 'brudnopis', icon: 'sandbox', flags: 'progressive', framed: false}, dnuTemplate, subpage, 'close_draft'));
 			items.push(this.createActionButton(this.actionMap.redirect, {label: 'redir', icon: 'articleRedirect', flags: 'progressive', framed: false}, dnuTemplate, subpage, 'close_redir'));
 		} else {
-			items.push(this.createActionButton(this.actionMap.repaired, {label: 'naprawiono', icon: 'articleCheck', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.lupo_close_repaired));
+			items.push(this.createActionButton(this.actionMap.repaired, {label: 'naprawiono', icon: 'articleCheck', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_repaired));
 		}
 	
 		if (this.isSubpage('artykuły', subpage) || this.isSubpage('biografie', subpage)) {
 			// icons?: clock, labFlask, ongoingConversation
-			items.push(this.createActionButton(this.actionMap.reanimation, {label: 'reanimacja', icon: 'labFlask', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.lupo_move_reanimation));
+			items.push(this.createActionButton(this.actionMap.reanimation, {label: 'reanimacja', icon: 'labFlask', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_move_reanimation));
 		}
 	
 		var buttonGroup = new OO.ui.ButtonGroupWidget({
@@ -676,27 +676,27 @@ var DelReqHandler =
 		
 		switch(param)
 		{
-			case DelReqHandler.lupo_close_del:
+			case DelReqHandler.fakeaction_close_del:
 				summary = DelReqHandler.close_del_summary;
 				result_param = 'usunięto';
 			break;
 			
-			case DelReqHandler.lupo_close_keep:
+			case DelReqHandler.fakeaction_close_keep:
 				summary = DelReqHandler.close_keep_summary;
 				result_param = 'zostawiono';
 			break;
 			
-			case DelReqHandler.lupo_close_no_result:
+			case DelReqHandler.fakeaction_close_no_result:
 				summary = DelReqHandler.close_no_result_summary;
 				result_param = 'brak wyniku';
 			break;
 			
-			case DelReqHandler.lupo_close_repaired:
+			case DelReqHandler.fakeaction_close_repaired:
 				summary = DelReqHandler.close_repaired_summary;
 				result_param = 'naprawiono';
 			break;
 			
-			case DelReqHandler.lupo_close_eject:
+			case DelReqHandler.fakeaction_close_eject:
 				summary = DelReqHandler.close_eject_summary;
 				result_param = 'wycofano';
 			break;
@@ -711,7 +711,7 @@ var DelReqHandler =
 				result_param = 'zostawiono';//dodać do lnDNU
 			break;
 
-			case DelReqHandler.lupo_move_reanimation:
+			case DelReqHandler.fakeaction_move_reanimation:
 				//summary = DelReqHandler.close_move2repair_summary;
 				result_param = 'reanimacja';
 			break;
