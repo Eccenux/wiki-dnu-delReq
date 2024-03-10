@@ -41,6 +41,16 @@ mw.hook('userjs.delreq.reader').add((dnu)=>{
 - [ ] Link do otworzenia artu w nowym oknie? Może przynajmniej nazwa, żeby wiedzieć co się komentuje.
 - [ ] Nie dodawać linków dla `.dnu-result` różnego od `rezultat-nn`?
 - [ ] I co na koniec? Odświeżać stronę? Ukrywać tylko przyciski? Inne?
+- [ ] Dodać przycisk "Brak komentarza" (jeśli komentarz już istnieje)? A może powinien być zawsze rezulatat przynajmniej?
+
+```js
+// See documentation at: 
+// https://doc.wikimedia.org/oojs-ui/master/js/#!/api/OO.ui.MultilineTextInputWidget
+new OO.ui.MultilineTextInputWidget( {
+	autosize: true,
+	value: `'''Rezultat zgłoszenia''' (tytuł art. dla multi?). ...`,
+} )
+```
 
 ## old, re-explore?
 - [ ] mock api-tasks?
