@@ -4,7 +4,7 @@
 // import { setupSummary } from 'wikiploy';
 import { DeployConfig, Wikiploy } from 'wikiploy';
 
-import * as botpass from './bot.config.mjs';
+import * as botpass from '../bot.config.mjs';
 const ployBot = new Wikiploy(botpass);
 
 // default site
@@ -20,11 +20,11 @@ const ployBot = new Wikiploy(botpass);
 	// deploy
 	const configs = [];
 	configs.push(new DeployConfig({
-		src: 'Gadget-DelReqHandler.js',
+		src: 'dnu-delReq/Gadget-DelReqHandler.js',
 		dst: '~/DelReqHandler.js',
 	}));
 	// configs.push(new DeployConfig({
-	// 	src: 'Gadget-DelReqHandler.js',
+	// 	src: 'dnu-delReq/Gadget-DelReqHandler.js',
 	// 	dst: 'MediaWiki:Gadget-DelReqHandler.js',
 	// }));
 	await ployBot.deploy(configs);

@@ -152,7 +152,7 @@ var DelReqHandler =
 
 			// buttons
 			const buttonGroup = this.createButtons(dnuTemplate, subpage);
-			$(dnuTemplate).append( buttonGroup.$element );
+			$(dnuTemplate).append( $('<div class="dnu-actions">').append(buttonGroup.$element) );
 
 			// done
 			// $(dnuTemplate).addClass('header-has-delreq');
