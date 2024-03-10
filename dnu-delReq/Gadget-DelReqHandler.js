@@ -160,10 +160,16 @@ var DelReqHandler =
 		}
 
 		if (hasItems) {
-			// mw.util.addCSS(''
-			// 	+'.header-has-delreq .oo-ui-buttonGroupWidget{float: right; font-size: small;}'
-			// 	+'.header-has-delreq {flex-wrap: wrap;}'
-			// );
+			mw.util.addCSS(/*css*/`
+				.dnu-actions .oo-ui-buttonGroupWidget {
+					display: flex;
+					flex-wrap: wrap;
+					align-items: flex-start;
+				}
+				.dnu-actions .oo-ui-buttonGroupWidget .oo-ui-buttonWidget {
+					margin-left: 0 !important;
+				}
+			`);
 
 			mw.hook('userjs.delreq.reader').fire(DelReqHandler);
 		}
