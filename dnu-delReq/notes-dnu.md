@@ -42,6 +42,7 @@ mw.hook('userjs.delreq.reader').add((dnu)=>{
 - [ ] Nie dodawać linków dla `.dnu-result` różnego od `rezultat-nn`?
 - [ ] I co na koniec? Odświeżać stronę? Ukrywać tylko przyciski? Inne?
 - [ ] Dodać przycisk "Brak komentarza" (jeśli komentarz już istnieje)? A może powinien być zawsze rezulatat przynajmniej?
+- [ ] Ukryć/wyszarzyć przyciski dla `.dnu-result` != "rezultat-nn". A może pokazać jakieś info w zamian?
 
 ```js
 // See documentation at: 
