@@ -30,7 +30,8 @@ mw.hook('userjs.delreq.reader').add((dnu)=>{
 ```
 
 ### part 2: close dialog:
-- [ ] Nowe okienko (OO.ui.prompt?) z możliwością wpisania komentarza.
+- [ ] Jakiś dobry przykład okienka OO.ui z wprowadzaniem tekstu? Zgłoś błąd?
+- [ ] Nowe okienko z możliwością wpisania komentarza (MultilineTextInputWidget?).
 - [ ] Wstępny komentarz na podstawie akcji (tak jak do tej pory).
 - [ ] Info, że podpis będzie dodany automatycznie.
 - [ ] Dopiero pod zatwierdzeniu pobranie strony i odpowiednie podmiany, czyli:
