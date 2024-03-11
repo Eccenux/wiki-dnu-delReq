@@ -118,12 +118,12 @@ var DelReqHandler =
 
 				if(action == this.actionMap.redirect)
 				{
-					OO.ui.prompt( 'Podaj stronę docelową przekierowania', { textInput: { placeholder: 'Tytuł docelowy' } } ).done( function ( result ) {
+					OO.ui.prompt( 'Podaj stronę docelową przekierowania', { textInput: { placeholder: 'Tytuł docelowy' } } ).done((result) => {
 						if ( result !== null && result.length ) {
 							this.inputfield = result;
 							this.buttonClicked(action, dnuTemplate, subpage, fakeaction);
 						}
-					} );
+					});
 				}
 				else
 				{
