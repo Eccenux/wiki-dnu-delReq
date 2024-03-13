@@ -56,6 +56,7 @@ var DelReqHandler =
 	close_repaired_summary: 'Naprawiono.',
 	close_draft_summary: 'Przeniesiono do brudnopisu.',
 	close_redir_summary: 'Przekierowano do innego artykułu.',
+	// Note! Use undescore instead of space
 	deletion_request_pages : [
 		'Wikipedia:Poczekalnia/artykuły',
 		'Wikipedia:Poczekalnia/biografie',
@@ -94,16 +95,17 @@ var DelReqHandler =
 
 	isItDelReqPage : function()
 	{
+		var current = this.current_pagename.replace(/ /g, '_');
 		for (var i = 0; i < this.deletion_request_pages.length; i++)
-			if (this.current_pagename.indexOf(this.deletion_request_pages[i]) == 0)
+			if (current.indexOf(this.deletion_request_pages[i]) == 0)
 				return true;
 		return false;
 	},
 
 	isSubpage : function(table, subpage)
 	{
-		var searched = 'Wikipedia:Poczekalnia/' + table + '/';
-		if (subpage.indexOf(searched) == 0) {
+		var searched = 'Wikipedia:Poczekalnia/' + table.replace(/ /g, '_') + '/';
+		if (subpage.replace(/ /g, '_').indexOf(searched) == 0) {
 			return true;
 		}
 		return false;
@@ -148,7 +150,7 @@ var DelReqHandler =
 				continue;
 			}
 			// full subpage title
-			const subpage = subpageEl.textContent.trim();
+			const subpage = subpageEl.textContent.trim().replace(/ /g, '_');
 
 			// buttons
 			const buttonGroup = this.createButtons(dnuTemplate, subpage);
@@ -343,7 +345,7 @@ var DelReqHandler =
 		
 		this.api.postWithEditToken({action: 'edit', title: this.page_processed, summary: 'Zamiana na przekierowanie po dyskusji w '+this.reason, text: '#PATRZ [['+DelReqHandler.inputfield+']]'})
 		.fail(function(code, error){
-			return DelReqHandler.fail("API request returned error: " + error.error.info + " Error code is " + code + " Function: makeRedirect");
+			return DelReqHandler.apiFail( code, error, "makeRedirect" );
 		})
 		.done(function(data){
 			DelReqHandler.nextTask();
@@ -433,14 +435,14 @@ var DelReqHandler =
 		    }
 		)
 		.fail(function(code, error){
-			return that.fail("API request returned error: " + error.error.info + " Error code is " + code + " Function: removeTemplate");
+			return DelReqHandler.apiFail( code, error, "removeTemplate" );
 		})
 		.then( function () {
 			try {
 		    that.addKeepToTalk();
 			}
 			catch (e) {
-				return that.fail(e);
+				return DelReqHandler.fail(e);
 			}
 		} );
 	},
@@ -468,14 +470,14 @@ var DelReqHandler =
 		
 		this.api.postWithEditToken({action: 'edit', title: talk_title, prependtext: text, summary: this.keep_summary})
 		.fail(function(code, error){
-			return that.fail("API request returned error: " + error.error.info + " Error code is " + code + " Function: addKeepToTalk");
+			return DelReqHandler.apiFail( code, error, "addKeepToTalk" );
 		})
 		.then( function () {
 			try {
 		    that.removeTemplate();
 			}
 		    catch (e) {
-				return that.fail(e);
+				return DelReqHandler.fail(e);
 			}
 		} );
 	},
@@ -487,10 +489,11 @@ var DelReqHandler =
 	findParentPage : function(page_name)
 	{
 		var result;
+		var subpage = page_name.replace(/ /g, '_');
 		for (var i = 0; i < this.deletion_request_pages.length; i++)
 		{
 			var page = this.deletion_request_pages[i];
-			if (page_name.indexOf(page) == 0)
+			if (subpage.indexOf(page) == 0)
 				if (result == null || page.length > result.length)
 					result = page;
 		}
@@ -555,7 +558,7 @@ var DelReqHandler =
 		    }
 		)
 		.fail(function(code, error){
-			return that.fail("API request returned error: " + error.error.info + " Error code is " + code + " Function: addSubpageToArchive");
+			return DelReqHandler.apiFail( code, error, "addSubpageToArchive" );
 		})
 		.then( function () {
 		    that.nextTask();
@@ -600,7 +603,7 @@ var DelReqHandler =
 		    }
 		)
 		.fail(function(code, error){
-			return that.fail("API request returned error: " + error.error.info + " Error code is " + code + " Function: addSubpageToReanimation");
+			return DelReqHandler.apiFail( code, error, "addSubpageToReanimation" );
 		})
 		.then( function () {
 		    that.nextTask();
@@ -660,7 +663,7 @@ var DelReqHandler =
 		    }
 		)
 		.fail(function(code, error){
-			return that.fail("API request returned error: " + error.error.info + " Error code is " + code + " Function: removeSubpage");
+			return DelReqHandler.apiFail( code, error, "removeSubpage" );
 		})
 		.then( function () {
 		    that.nextTask();
@@ -830,7 +833,7 @@ var DelReqHandler =
 		this.api.postWithEditToken({action: 'delete', title: page, reason: reason})
 		.fail(function(code, error){
 			if(code != 'missingtitle' || must_exists)
-				return that.fail("Błąd usuwania strony \""+page+"\":<br />" + error.error.info + "<br />Error code is " + code + ", function: deletePage");
+				return DelReqHandler.fail("Błąd usuwania strony \""+page+"\":<br />" + error.error.info + "<br />Error code is " + code + ", function: deletePage");
 			else
 				that[callback]();
 		})
@@ -906,6 +909,18 @@ var DelReqHandler =
 	},
 
 	/**
+	 * Common API fail handler.
+	 * @param {String} code 
+	 * @param {Object} error API response indicating an error (or an exception result).
+	 */
+	apiFail : function ( code, errorData, functionName ) {
+		console.error('[dnu] API fail:', code, errorData, functionName);
+		const codeInfo = typeof code === 'string' || typeof code === 'number' ? code : JSON.stringify(code);
+		const errorInfo =  typeof errorData === 'object' ? this.api.getErrorMessage( errorData ) : JSON.stringify(errorData);
+		return this.fail("API request returned error: " + errorInfo + " Error code is " + codeInfo + " Function: " + functionName);
+	},
+
+	/**
       * Crude error handler. Just throws an alert at the user and (if we managed to
       * add the {delete} tag) reloads the page.
       **/
@@ -915,7 +930,7 @@ var DelReqHandler =
 		var msg = this.i18n.taskFailure[this.currentTask] || this.i18n.genericFailure;
 		var fix = '';//(this.templateAdded ? this.i18n.completeRequestByHand : this.i18n.addTemplateByHand );
 
-		$('#feedbackContainer').html(msg + " " + fix + "<br>" + this.i18n.errorDetails + "<hr>" + err + "<hr><a id=\"feedbackContainerfeedback\" href=\"" + mw.config.get('wgServer') + "/wiki/Dyskusja MediaWiki:Gadget-DelReqHandler.js\">" + this.i18n.errorReport +"</a>");
+		$('#feedbackContainer').html(msg + " " + fix + "<br>" + this.i18n.errorDetails + "<hr>" + mw.html.escape(err) + "<hr><a id=\"feedbackContainerfeedback\" href=\"" + mw.config.get('wgServer') + "/wiki/Dyskusja MediaWiki:Gadget-DelReqHandler.js\">" + this.i18n.errorReport +"</a>");
 		$('#feedbackContainer').addClass('ajaxDeleteError');
 		this.progressDialog.$body.resize();
 		

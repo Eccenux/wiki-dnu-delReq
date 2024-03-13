@@ -15,6 +15,7 @@ const ployBot = new Wikiploy(botpass);
 	// await setupSummary(ployBot);
 	ployBot.summary = () => {
 		return `actions stability`;
+		// return `underscore and api safety`;
 	};
 
 	// deploy
