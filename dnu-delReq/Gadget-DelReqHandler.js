@@ -1028,7 +1028,7 @@ function waitForCondition(condition, callback, interval, limit, overlimit) {
 			limit = false;
 		}
 		let intervalId = setInterval(function() {
-			console.log('waiting...');
+			// console.log('waiting...');
 			if (condition()) {
 				//console.log('done');
 				clearInterval(intervalId);

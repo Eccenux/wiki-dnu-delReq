@@ -14,7 +14,7 @@ const ployBot = new Wikiploy(botpass);
 	// custom summary from a prompt
 	// await setupSummary(ployBot);
 	ployBot.summary = () => {
-		return `actions stability`;
+		return `basic mobile support`;
 		// return `underscore and api safety`;
 	};
 
