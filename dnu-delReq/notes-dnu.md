@@ -29,7 +29,16 @@ mw.hook('userjs.delreq.reader').add((dnu)=>{
 {{lnDNU|pageTitle|strona={{subst:FULLPAGENAME}} }}
 ```
 
-### part 2: close dialog:
+### part 2a: basic mobile support:
+Wsparcie dla mobilnego edytora. Haksior przed lepszym rozwiązaniem (lepsze = okienko dialogowe do zamykania).
+- [x] Debug.
+- [x] Test zamknięcia zgłoszenia (bez mock).
+- [x] Test zamykania.
+
+Przykładowy URL mobilny (fakeaction dodane przez DelReq):
+https://pl.m.wikipedia.org/w/index.php?title=Wikipedia%3APoczekalnia%2Fartyku%C5%82y%2F2024%3A09%3A09%3AChamp_%28kryptozoologia%29&fakeaction=close_del#/editor/all
+
+### part 2b: close dialog:
 - [ ] Jakiś dobry przykład okienka OO.ui z wprowadzaniem tekstu? Zgłoś błąd?
 - [ ] Nowe okienko z możliwością wpisania komentarza (MultilineTextInputWidget?).
 - [ ] Wstępny komentarz na podstawie akcji (tak jak do tej pory).

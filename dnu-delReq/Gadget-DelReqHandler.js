@@ -79,6 +79,10 @@ var DelReqHandler =
 	beginLoading : function()
 	{
 		var wgAction = mw.config.get('wgAction');
+		// mobile edit
+		if (location.hash.includes('editor/all')) {
+			wgAction = 'edit';
+		}
 		var notoldid = document.URL.search (/[?&]oldid=/) < 0;
 		if ((wgAction == 'view' || wgAction == 'purge') && this.isItDelReqPage() && notoldid)
 		{
@@ -89,8 +93,9 @@ var DelReqHandler =
 				});
 			});			
 		}
-		else if (wgAction == 'edit')
+		else if (wgAction == 'edit') {
 			this.maybeSetupForm();
+		}
 	},
 
 	isItDelReqPage : function()
@@ -146,7 +151,7 @@ var DelReqHandler =
 		for (let dnuTemplate of dnuTemplates) {
 			const subpageEl = dnuTemplate.querySelector('.sz-ln-dnu .dnu-self-page');
 			if (!subpageEl) {
-				console.warn('dnu-self-page not found', {dnuTemplate});
+				console.warn('[dnu] dnu-self-page not found', {dnuTemplate});
 				continue;
 			}
 			// full subpage title
@@ -246,7 +251,7 @@ var DelReqHandler =
 		const articleTitle = !articleTitleEl ? '' : articleTitleEl.textContent.trim();
 		if (!articleTitle.length) {
 			alert('Nie udało się znaleźć linka w szablonie lnDNU. Spróbuj odświeżyć stronę lub sprawdź czy szablon jest wypełniony poprawnie.');
-			console.error('DNU close failed.', {action, dnuTemplate, subpage});
+			console.error('[dnu] close failed.', {action, dnuTemplate, subpage});
 			return;
 		}
 
@@ -263,7 +268,7 @@ var DelReqHandler =
 		
 		if(typeof DelReqHandler_debug !== "undefined")
 		{
-			console.log("Omawiane strony: ", this.pages_to_process);
+			console.log("[dnu] Omawiane strony: ", this.pages_to_process);
 			return;
 		}
 		
@@ -727,10 +732,31 @@ var DelReqHandler =
 
 		}
 		
+		var $summary = $('#wpSummary');
+		let getMobileArea = () => document.querySelector('#wikitext-editor');
+		let textbox = document.editform && document.editform.wpTextbox1 ? document.editform.wpTextbox1 : getMobileArea();
+
+		// jeśli nie ma, to zakładamy, że musimy poczekać na mobilny edytor
+		if (!textbox) {
+			var interval = 200, limit = 40, overlimit = function() {
+				console.error('[dnu] textbox is undefined, auto-close summary not possible');
+				alert(JSON.stringify(summary, result_param));
+			};
+			waitForCondition(getMobileArea, () => {
+				let textbox = document.querySelector('#wikitext-editor');
+				this.setupForm($summary, textbox, summary, result_param);
+			}, interval, limit, overlimit);
+			return;
+		}
+
+		this.setupForm($summary, textbox, summary, result_param);
+	},
+	/** Do actual setup of the edit textbox (when closing). */
+	setupForm: function($summary, textbox, summary, result_param) {
+
 		if (summary !== null && result_param !== null) {
-			$('#wpSummary').val(summary);
+			$summary.val(summary);
 			
-			let textbox = document.editform.wpTextbox1;
 			let text = textbox.value + '\n\'\'\'' + summary + '\'\'\' \~\~\~\~';
 			text = text.replace(/(\{\{lnDNU)\|rezultat=[^\|]+\|data zakończenia=[^\|]+/, '$1');
 			text = text.replace(/(\{\{lnDNU)/gi, '$1|rezultat=' + result_param + '|data zakończenia=' + this.formatDate("YYYY-MM-DD"));
@@ -742,9 +768,8 @@ var DelReqHandler =
 			}
 			textbox.focus();
 		} else if (result_param === 'reanimacja') {
-			$('#wpSummary').val(DelReqHandler.close_move2repair_summary);
+			$summary.val(DelReqHandler.close_move2repair_summary);
 			
-			let textbox = document.editform.wpTextbox1;
 			let text = textbox.value + '\n</div>\n\n\'\'\'Do naprawy:\'\'\'\n\* ...\n\* ...\n\~\~\~\~';
 			text = text.replace(/(\}\})(\n+[^\n:])/, '$1\n\n{{licznik czasu|zdarzenie=Czas przewidziany na reanimację|start={{subst:#timel:Y-m-d H:i:s}}|dni=60}}\n\n<div style="padding:20px; background:#dee; border:1px solid #aaa;">\n$2');
 			textbox.value = text;	
@@ -990,6 +1015,37 @@ var DelReqHandler =
 }; // End of DelReqHandler
 
 DelReqHandler.beginLoading();
+
+/** Wait for condition (see: pendingChangesHelper). */
+function waitForCondition(condition, callback, interval, limit, overlimit) {
+	if (condition()) {
+		callback();
+	} else {
+		if (typeof interval !== 'number') {
+			interval = 200;
+		}
+		if (typeof limit !== 'number') {
+			limit = false;
+		}
+		let intervalId = setInterval(function() {
+			console.log('waiting...');
+			if (condition()) {
+				//console.log('done');
+				clearInterval(intervalId);
+				callback();
+			}
+			if (limit !== false) {
+				limit--;
+				if (limit <= 0) {
+					clearInterval(intervalId);
+					if (typeof overlimit === 'function') {
+						overlimit();
+					}
+				}
+			}
+		}, interval);
+	}
+}
 
 })
 // </nowiki>
