@@ -6,9 +6,10 @@
 /* global $, mw, OO */
 /* global moveToSandboxGadget */
 // <nowiki>
-/*
+/**
   Support for quick deletions and closing of deletion requests at Polish Wikipedia.
-  [[WP:Poczekalnia]]
+  
+  Info: [[Wikipedia:Narzędzia/DelReqHandler]].
 
   Author: [[User:Lupo]], October 2007 - January 2008
     full list of initial authors:
