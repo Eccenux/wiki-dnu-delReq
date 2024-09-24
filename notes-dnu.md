@@ -39,6 +39,10 @@ Przykładowy URL mobilny (fakeaction dodane przez DelReq):
 https://pl.m.wikipedia.org/w/index.php?title=Wikipedia%3APoczekalnia%2Fartyku%C5%82y%2F2024%3A09%3A09%3AChamp_%28kryptozoologia%29&fakeaction=close_del#/editor/all
 
 ### part 2b: close dialog:
+
+Opowieść użytecznicza:
+https://pl.m.wikipedia.org/wiki/Dyskusja_wikipedysty:Nux?markasread=29163559&markasreadwiki=plwiki#c-AramilFeraxa-20240924085100-MediaWiki:Gadget-DelReqHandler.js
+
 - [ ] BTW. po anulowaniu przenoszenia do brudnopisu występuje błąd, którego nie można zamknąć.
 	Zmienić to na okienko informacje w stylu obsługi zamykania nominacji CW (takie OO.ui).
 	Sprawdzić czy ESC działa.
