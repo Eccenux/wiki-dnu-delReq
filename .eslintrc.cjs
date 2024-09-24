@@ -5,10 +5,10 @@ module.exports = {
 		"es2017": true,	// note that even using async/await might not be supported in MW: https://phabricator.wikimedia.org/T277675
 		"mocha": true,
 	},
-	"globals": {
-		"$": true,
-		"mw": true,
-	},
+	// "globals": {
+	// 	"$": true,
+	// 	"mw": true,
+	// },
 	"ignorePatterns": [
 		"dist/*",
 	],
