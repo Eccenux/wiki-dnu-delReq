@@ -6,18 +6,18 @@ import { DeployConfig } from 'wikiploy';
  * @param {String} site Domian of a MW site.
  */
 export function addConfig(configs, site, isRelease) {
-	let deploymentName = isRelease ? '~/yourGadgetName' : '~/yourGadgetName-dev';
+	let deploymentName = isRelease ? 'MediaWiki:Gadget-DelReqHandler.js' : '~/DelReqHandler';
 	configs.push(new DeployConfig({
-		src: 'dist/yourGadgetName.js',
+		src: 'Gadget-DelReqHandler.js',
 		dst: `${deploymentName}.js`,
 		site,
 		nowiki: true,
 	}));
-	configs.push(new DeployConfig({
-		src: 'dist/yourGadgetName.css',
-		dst: `${deploymentName}.css`,
-		site,
-	}));
+	// configs.push(new DeployConfig({
+	// 	src: 'DelReqHandler.css',
+	// 	dst: `${deploymentName}.css`,
+	// 	site,
+	// }));
 }
 export function addConfigRelease(configs, site) {
 	addConfig(configs, site, true);
