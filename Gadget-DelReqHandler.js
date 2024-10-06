@@ -70,7 +70,6 @@ var DelReqHandler =
 	reanimation_section_line : '<!-- Nowe zgłoszenia wstawiaj poniżej tej linii. Nie usuwaj tej linii -->',
 	archive_edit_summary : '[[$1]] − dyskusja zakończona',
 	
-	script_dependencies : [],
 	current_pagename : mw.config.get('wgPageName'),
 	
 	api : new mw.Api(/*{parameters:{errorformat: 'html', formatversion: 2}}*/),
@@ -88,7 +87,7 @@ var DelReqHandler =
 		if ((wgAction == 'view' || wgAction == 'purge') && this.isItDelReqPage() && notoldid)
 		{
 			var o = this;
-			mw.loader.using(this.script_dependencies, function() {
+			mw.loader.using([ 'oojs-ui-core', 'oojs-ui-windows' ], function() {
 				$(document).ready(function() {
 					o.closeRequestLinks();				    
 				});
