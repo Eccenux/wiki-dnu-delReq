@@ -6,7 +6,7 @@ import { DeployConfig } from 'wikiploy';
  * @param {String} site Domian of a MW site.
  */
 export function addConfig(configs, site, isRelease) {
-	let deploymentName = isRelease ? 'MediaWiki:Gadget-DelReqHandler.js' : '~/DelReqHandler';
+	let deploymentName = isRelease ? 'MediaWiki:Gadget-DelReqHandler' : '~/DelReqHandler';
 	configs.push(new DeployConfig({
 		src: 'Gadget-DelReqHandler.js',
 		dst: `${deploymentName}.js`,
