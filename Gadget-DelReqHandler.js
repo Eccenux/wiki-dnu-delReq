@@ -761,7 +761,7 @@ var DelReqHandler =
 			$summary.val(summary);
 			
 			// Note: The period should follow the bold text, so mobile keyboards switch to sentence-begin mode (capitalize the first letter).
-			let text = textbox.value + '\n\n\'\'\'' + summary.replace(/\.$/, '') + '\'\'\'.  \~\~\~\~';
+			let text = textbox.value + '\n----\n\'\'\'' + summary.replace(/\.$/, '') + '\'\'\'.  \~\~\~\~';
 			text = text.replace(/(\{\{lnDNU)\|rezultat=[^\|]+\|data zakończenia=[^\|]+/, '$1');
 			text = text.replace(/(\{\{lnDNU)/gi, '$1|rezultat=' + result_param + '|data zakończenia=' + this.formatDate("YYYY-MM-DD"));
 			textbox.value = text;	
