@@ -660,8 +660,6 @@ var DelReqHandler =
 				{
 					//inclusion found - cut it out
 					text = text.substr(0, idx) + text.substr(idx + searched.length);
-					
-					
 				}
 				
 				return {
@@ -671,7 +669,14 @@ var DelReqHandler =
 		    }
 		)
 		.fail(function(code, error){
-			return DelReqHandler.apiFail( code, error, "removeSubpage" );
+			// return DelReqHandler.apiFail( code, error, "removeSubpage" );
+			alert('Usuwanie podstrony nie udało się (być może nastąpił konflikt). '
+				+'\n Usuń potem ręcznie: {{' + that.subpage + '}} '
+				+'\n na stronie: ' + this.parent_page
+				+'\n\nPozostałe operacje będą kontyunowane.'
+			);
+			console.error('[dnu]', '[removeSubpage]', code, error);
+		    that.nextTask();
 		})
 		.then( function () {
 		    that.nextTask();
@@ -945,8 +950,14 @@ var DelReqHandler =
 	apiFail : function ( code, errorData, functionName ) {
 		console.error('[dnu] API fail:', code, errorData, functionName);
 		const codeInfo = typeof code === 'string' || typeof code === 'number' ? code : JSON.stringify(code);
-		const errorInfo =  typeof errorData === 'object' ? this.api.getErrorMessage( errorData ) : JSON.stringify(errorData);
-		return this.fail("API request returned error: " + errorInfo + " Error code is " + codeInfo + " Function: " + functionName);
+		// const errorInfo =  typeof errorData === 'object' ? this.api.getErrorMessage( errorData ) : JSON.stringify(errorData);
+		let errorInfo;
+		try{
+			errorInfo = JSON.stringify(errorData);
+		} catch(e) {
+			errorInfo = 'unable to stringify errorData of type: ' + (typeof errorData);
+		}		
+		return this.fail("API request returned error: " + errorInfo + "; Error code is: " + codeInfo + "; Function: " + functionName);
 	},
 
 	/**
@@ -967,8 +978,16 @@ var DelReqHandler =
 			e.preventDefault();
 			
 			mw.loader.using('mediawiki.feedback', function(){
-				var feedback = new mw.Feedback({bugsLink: mw.config.get('wgServer') + "/wiki/Dyskusja MediaWiki:Gadget-DelReqHandler.js", title: new mw.Title("Dyskusja MediaWiki:Gadget-DelReqHandler.js")});
-				feedback.launch({subject: 'Błąd', message: 'Wyświetla mi błąd podczas usuwania "'+that.page_processed+'" na "'+that.subpage+'"\n<pre>'+err+'</pre>'});
+				var feedback = new mw.Feedback({
+					bugsLink: mw.config.get('wgServer') + "/wiki/Dyskusja MediaWiki:Gadget-DelReqHandler.js",
+					title: new mw.Title("Dyskusja MediaWiki:Gadget-DelReqHandler.js")
+				});
+				var user = mw.config.get('wgUserName');
+				var date = new Date().toISOString().substring(0,10);
+				feedback.launch({
+					subject: 'Problem - ' + date + ' - ' + user,
+					message: 'Wyświetla mi błąd podczas usuwania "'+that.page_processed+'" na "'+that.subpage+'"\n<pre>'+err+'</pre>'
+				});
 			});
 		});
 
