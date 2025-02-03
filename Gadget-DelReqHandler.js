@@ -531,34 +531,39 @@ var DelReqHandler =
 		this.parent_page = this.findParentPage(this.subpage);
 		this.archive_page = this.parent_page + ' załatwione 24';
 		
-		var that = this;
-		
+		const that = this;
+
+		let subpage = that.subpage;
+		//if it's possible - strip the prefix
+		if (subpage.includes(DelReqHandler.archivePageName)) {
+			subpage = subpage.substr(DelReqHandler.archivePageName.length);
+		}
+		subpage = '{{' + subpage + '}}';
+
 		this.api.edit(
 		    this.archive_page,
 		    function ( revision ) {
-		    	var subpage = that.subpage;
 		    	var text = revision.content;
+				
+				// skip duplicate entries, crucial for multi-article del-requests.
+				if (text.includes(subpage)) {
+					return text;
+				}
 
-				//if it's possible - strip the prefix
-				var idx = subpage.indexOf(DelReqHandler.archivePageName);
-				if (idx == 0)
-					subpage = subpage.substr(DelReqHandler.archivePageName.length);
-		
-				subpage = '{{' + subpage + '}}';
-		
-				if (text.indexOf(DelReqHandler.archive_section_line) >= 0)
+				// add after archive_section_line (marker)
+				if (text.includes(DelReqHandler.archive_section_line)) {
 					text = text.replace(
 						   DelReqHandler.archive_section_line,
 						   DelReqHandler.archive_section_line + '\n' + subpage
-					       );
-				else
+					);
+				} else {
 					//no archive line - just append
 					//do not add an extra line break if the current text ends with one
 					text =
 					    text
 					    + (text[text.length-1] == '\n' ? '' : '\n')
 					    + subpage;
-
+				}
 		        return {
 		            text: text,
 		            summary: '+ {{[[' + that.subpage + ']]}}'
@@ -945,7 +950,7 @@ var DelReqHandler =
 	/**
 	 * Common API fail handler.
 	 * @param {String} code 
-	 * @param {Object} error API response indicating an error (or an exception result).
+	 * @param {Object} errorData API response indicating an error (or an exception result).
 	 */
 	apiFail : function ( code, errorData, functionName ) {
 		console.error('[dnu] API fail:', code, errorData, functionName);
