@@ -334,12 +334,13 @@ var DelReqHandler =
 			moveToSandboxGadget.open( function(status) {
 				if(status)
 				{
-				DelReqHandler.pages_to_process.push(moveToSandboxGadget.moveDestination);
-				DelReqHandler.nextTask();
+					DelReqHandler.pages_to_process.push(moveToSandboxGadget.moveDestination);
+					DelReqHandler.nextTask();
 				}
 				else
 				{
-				DelReqHandler.fail('Anulowano przenosiny');
+					DelReqHandler.prematureEnd();
+					OO.ui.alert('Anulowano przenosiny, nic nie zostało zmienione.');
 				}
 			}, DelReqHandler.reason);
 		});
@@ -941,6 +942,23 @@ var DelReqHandler =
 		this.windowManager.openWindow( this.progressDialog );
 
 		this.nextTask();
+	},
+	/**
+		Cleanup without reloading.
+	*/
+	prematureEnd : function () {
+		this.tasks = [];
+
+		document.body.style.cursor = '';
+
+		if ( this.windowManager ) {
+			this.windowManager.closeWindow( this.progressDialog ).then( () => {
+				this.windowManager.removeWindows( [ this.progressDialog ] );
+				this.windowManager.$element.remove();
+				this.windowManager = null;
+				this.progressDialog = null;
+			} );
+		}
 	},
 
 	updateProgress : function (message) {
