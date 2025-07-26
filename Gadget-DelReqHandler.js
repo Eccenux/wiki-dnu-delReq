@@ -952,7 +952,7 @@ var DelReqHandler =
 		document.body.style.cursor = '';
 
 		if ( this.windowManager ) {
-			this.windowManager.closeWindow( this.progressDialog ).then( () => {
+			this.windowManager.closeWindow( this.progressDialog ).closed.then( () => {
 				this.windowManager.removeWindows( [ this.progressDialog ] );
 				this.windowManager.$element.remove();
 				this.windowManager = null;
