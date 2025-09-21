@@ -251,7 +251,7 @@ var DelReqHandler =
 	buttonClicked : function (action, dnuTemplate, subpage, fakeaction)
 	{
 		const articleTitleEl = dnuTemplate.querySelector('.sz-ln-dnu a:first-of-type');
-		const articleTitle = !articleTitleEl ? '' : articleTitleEl.textContent.trim();
+		const articleTitle = !articleTitleEl ? '' : articleTitleEl.textContent.trim(); // title of a specifc article (might be different then the subpage title)
 		if (!articleTitle.length) {
 			alert('Nie udało się znaleźć linka w szablonie lnDNU. Spróbuj odświeżyć stronę lub sprawdź czy szablon jest wypełniony poprawnie.');
 			console.error('[dnu] close failed.', {action, dnuTemplate, subpage});
@@ -262,7 +262,7 @@ var DelReqHandler =
 		this.subpage = subpage;
 		this.reason = '[[' + subpage + ']]';
 		this.keep_summary = 'Zostawiono po dyskusji: ' + this.reason;
-		this.close_href = mw.util.getUrl(subpage, {action:'edit', fakeaction});
+		this.close_href = mw.util.getUrl(subpage, {action:'edit', fakeaction, articleTitle});
 
 		this.pages_to_process = [articleTitle];
 
@@ -695,9 +695,11 @@ var DelReqHandler =
 	*/
 	maybeSetupForm : function()
 	{
-		var param = mw.util.getParamValue ('fakeaction');
+		var param = mw.util.getParamValue ('fakeaction'); // close type
 		if (param == null)
 			return;
+
+		var articleTitle = mw.util.getParamValue ('articleTitle'); // title of a specifc article (might be different then the subpage title)
 
 		var summary = null;
 		var result_param = null;
@@ -758,23 +760,88 @@ var DelReqHandler =
 			};
 			waitForCondition(getMobileArea, () => {
 				let textbox = document.querySelector('#wikitext-editor');
-				this.setupForm($summary, textbox, summary, result_param);
+				this.setupForm($summary, textbox, summary, result_param, articleTitle);
 			}, interval, limit, overlimit);
 			return;
 		}
 
-		this.setupForm($summary, textbox, summary, result_param);
+		setTimeout(() => {
+			this.setupForm($summary, textbox, summary, result_param, articleTitle);
+		}, 50);
 	},
-	/** Do actual setup of the edit textbox (when closing). */
-	setupForm: function($summary, textbox, summary, result_param) {
+	/**
+	 * Do actual setup of the edit textbox (when closing).
+	 * @param {jQuery} $summary The summary input.
+	 * @param {Element} textbox The editor element.
+	 * @param {String} summary Summary to add.
+	 * @param {String} result_param One of predefined results for `lnDNU`.
+	 * @param {String} articleTitle Article title for `lnDNU`.
+	 */
+	setupForm: function($summary, textbox, summary, result_param, articleTitle) {
+		// if (this._setupForm_done) {
+		// 	console.error('[dnu]', 'setupForm run twice?:', {$summary, textbox, summary, result_param, articleTitle});
+		// 	return;
+		// }
+		// this._setupForm_done = true;
+
+		var isMulti = (textbox.value.match(/{{lnDNU\|/g) || []).length > 1; // the report concerncs multiple pages (articles, templates etc)
+		if (typeof articleTitle !== 'string') {
+			articleTitle = '';
+		}
 
 		if (summary !== null && result_param !== null) {
 			$summary.val(summary);
+
+			let closeText = summary.replace(/\.$/, '');
+			if (isMulti && articleTitle.length) {
+				closeText += ` (''<nowiki>${articleTitle}</nowiki>'')`;
+			}
+
+			var today = this.formatDate("YYYY-MM-DD");
+			var parmasToAdd = '|rezultat=' + result_param + '|data zakończenia=' + today;
 			
 			// Note: The period should follow the bold text, so mobile keyboards switch to sentence-begin mode (capitalize the first letter).
-			let text = textbox.value + '\n----\n\'\'\'' + summary.replace(/\.$/, '') + '\'\'\'.  \~\~\~\~';
-			text = text.replace(/(\{\{lnDNU)\|rezultat=[^\|]+\|data zakończenia=[^\|]+/g, '$1');
-			text = text.replace(/(\{\{lnDNU)/gi, '$1|rezultat=' + result_param + '|data zakończenia=' + this.formatDate("YYYY-MM-DD"));
+			let text = textbox.value + '\n----\n\'\'\'' + closeText + '\'\'\'.  \~\~\~\~';
+			// single lnDNU
+			if (!isMulti) {
+				text = text.replace(/(\{\{lnDNU)\|rezultat=[^\|]+\|data zakończenia=[^\|]+/g, '$1');
+				text = text.replace(/(\{\{lnDNU)/gi, '$1' + parmasToAdd);
+			// multi lnDNU
+			} else {
+				let added = false;
+				// note, regexp assumes lnDNU is a single line tpl (which should be the case)
+				text = text.replace(/(\{\{lnDNU)(\|.+)(\}\}|\n)/g, (a, start, params, end) => {
+					// skip already closed
+					if (params.includes('|rezultat=')) {
+						//console.log('[dnu]', 'already done:', a);
+						return a; // no change
+					}
+					// skip not-mine
+					if (articleTitle.length && !params.includes('|'+articleTitle+'|')) {
+						//console.log('[dnu]', 'skip:', {params, articleTitle});
+						return a; // no change
+					}
+					//console.log('[dnu]', 'MINE!:', {params, articleTitle});
+
+					// remove just in case
+					params = params.replace(/\|rezultat=[^\|]+\|data zakończenia=[^\|]+/g, '');
+					// new params
+					params = parmasToAdd + params;
+					added = true;
+
+					return start + params + end;
+				});
+				if (!added) {
+					text += `\n<!--
+					|	Uwaga! Nie udało się znaleźć odpowiedniego {{lnDNU}} i zmienić jego parametry.
+					|	Powtórzona akcja?
+					|
+					|	Upewnij się, że zamykasz dobre zgłoszenie (szukano {{lnDNU}} dotyczącego: „${articleTitle.length ? articleTitle : '-'}”).
+					|	Jeśli tak, to dodaj ręcznie parametry do odpowiedniego {{lnDNU}}:
+					|	${parmasToAdd}
+					|-->`.replace(/\n\s+\|/g, '\n');
+				}
+			}
 			textbox.value = text;	
 
 			// Don't close the window so the user can add a comment.

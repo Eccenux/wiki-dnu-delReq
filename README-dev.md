@@ -23,8 +23,12 @@ Gadżet jest wdrażany za pomocą [Wikiploy](https://pl.wikipedia.org/wiki/Wikip
 # wdrożenie do przestrzeni użytkownika (podczas testowania zmian)
 npm deploy-dev
 # pełne wdrożenie
+# (opis zmian podaje się przy wdrożeniu)
 npm deploy
 ```
+
+Uwaga! DelReq nie ma wersji (większość gadżetów ma numer wersji).
+Tutaj jednak nigdzie nie trzeba zmieniać wersji.
 
 ## Hasło bota
 
