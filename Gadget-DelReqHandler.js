@@ -794,7 +794,8 @@ var DelReqHandler =
 
 			let closeText = summary.replace(/\.$/, '');
 			if (isMulti && articleTitle.length) {
-				closeText += ` (''<nowiki>${articleTitle}</nowiki>'')`;
+				let noWikiTag = 'nowiki';
+				closeText += ` (''<${noWikiTag}>${articleTitle}</${noWikiTag}>'')`;
 			}
 
 			var today = this.formatDate("YYYY-MM-DD");
