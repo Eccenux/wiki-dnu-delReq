@@ -6,7 +6,7 @@
 		"deploy": "node wikiploy.mjs"
 	},
 	"devDependencies": {
-		"eslint": "8.x",
+		"eslint": "9.x",
 		"wikiploy": "2.x"
 	}
 }
