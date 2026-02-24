@@ -857,7 +857,7 @@ var DelReqHandler =
 			$summary.val(DelReqHandler.close_move2repair_summary);
 			
 			let text = textbox.value + '\n</div>\n\n\'\'\'Do naprawy:\'\'\'\n\* ...\n\* ...\n\~\~\~\~';
-			text = text.replace(/(\}\})(\n+[^\n:])/, '$1\n\n{{licznik czasu|zdarzenie=Czas przewidziany na reanimację|start={{subst:#timel:Y-m-d H:i:s}}|dni=60}}\n\n<div style="padding:20px; background:#dee; border:1px solid #aaa;">\n$2');
+			text = text.replace(/(\}\})(\n+[^\n:])/, '$1\n\n{{licznik czasu|zdarzenie=Czas przewidziany na reanimację|start={{subst:#timel:Y-m-d H:i:s}}|dni=60|rgz=m}}\n\n<div style="padding:20px; background:#dee; border:1px solid #aaa;">\n$2');
 			textbox.value = text;	
 
 			// Don't close the window so the user can add a comment.
