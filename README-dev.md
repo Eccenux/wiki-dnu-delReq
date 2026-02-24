@@ -11,13 +11,13 @@ node i
 ```
 
 Jeśli chcesz używać [VSCode](https://code.visualstudio.com/), to zainstaluj go i otwórz w nim folder z kodem.
-Powinny wysokczyć sugestie instalacji rozszerzeń pomocniczych.
+Powinny wyskoczyć sugestie instalacji rozszerzeń pomocniczych.
 
 ## Wdrożenia
 
 Gadżet jest wdrażany za pomocą [Wikiploy](https://pl.wikipedia.org/wiki/Wikipedia:Wikiploy). Można robić to ręcznie, ale na dłuższą metę wygodniej jest botem.
 
-1. Przygotuj swoje hasło w `bot.config.mjs` (see *Preparing deployment* below).
+1. Przygotuj swoje hasło w `bot.config.mjs` (zob. §*Hasło bota*).
 2. Wdrażać możesz za pomocą [VSCode](https://code.visualstudio.com/), albo z linii poleceń:
 ```bash
 # wdrożenie do przestrzeni użytkownika (podczas testowania zmian)

@@ -126,6 +126,9 @@ var DelReqHandler =
 			button.$element.click((e) => {
 				e.preventDefault();
 
+				$(dnuTemplate).addClass('dnu-clicked');
+				button.$element.addClass('dnu-clicked');
+
 				if(action == this.actionMap.redirect)
 				{
 					OO.ui.prompt( 'Podaj stronę docelową przekierowania', { textInput: { placeholder: 'Tytuł docelowy' } } ).done((result) => {
