@@ -1,15 +1,36 @@
+/**
+ * Simple draggable dialog window.
+ * 
+ * To get an instance of this class use `dialog.uSdd`.
+ */
 class SimpleDragDialog {
+	show() {
+		this.dialog.style.display = '';
+	}
+	hide() {
+		this.dialog.style.display = 'none';
+	}
 	/**
 	 * Creates draggable dialog window.
 	 * @param {Object} opt
 	 * @param {string} opt.title
 	 * @param {string|HTMLElement} opt.content
-	 * @returns {HTMLElement} Dialog.
+	 * @param {string|HTMLElement} opt.dialogClass Extra class.
+	 * @returns {HTMLElement} Dialog element.
 	 */
-	create({content = '', title = ''} = {}) {
+	create({content = '', title = '', dialogClass = '', startHidden = true} = {}) {
 		// container
 		const dialog = document.createElement('div'); // OR dialog?
-		dialog.style.display = 'none';
+		if (startHidden) {
+			dialog.style.display = 'none';
+		}
+		dialog.classList.add('sdragdialog-dialog');
+		if (dialogClass) {
+			dialog.classList.add(dialogClass);
+		}
+
+		// self reference
+		dialog.uSdd = this;
 
 		//
 		// header (draggeble)
@@ -19,7 +40,12 @@ class SimpleDragDialog {
 		const closeBtn = document.createElement('button');
 		closeBtn.textContent = '×';
 		closeBtn.style.marginLeft = '10px';
-		closeBtn.onclick = () => dialog.remove();
+		closeBtn.addEventListener('click', ()=>{
+			dialog.dispatchEvent(new CustomEvent('dialog:close', {
+				detail: { reason: 'button' },
+			}));
+			dialog.remove();
+		});
 
 		const titleEl = document.createElement('span');
 		titleEl.textContent = title;
@@ -39,13 +65,25 @@ class SimpleDragDialog {
 		}
 
 		//
+		// elements
+		this.dialog = dialog;
+		this.header = header;
+		this.body = body;
+
+		//
 		// finalize
 		dialog.appendChild(header);
 		dialog.appendChild(body);
-		let citedialogs = document.getElementById( 'sdragdialog-dialogs' );
-		citedialogs.appendChild(dialog);
+		const sddId = 'sdragdialog-dialogs';
+		let sddContainer = document.getElementById(sddId);
+		if (!sddContainer) {
+			sddContainer = document.createElement('div');
+			sddContainer.setAttribute('id', sddId);
+			document.body.appendChild(sddContainer);
+		}
+		sddContainer.appendChild(dialog);
 
-		this.makeDraggable(dialog, header)
+		this.makeDraggable(dialog, header);
 
 		return dialog;
 	}
@@ -80,3 +118,6 @@ class SimpleDragDialog {
 		});
 	}
 }
+
+// export
+window.SimpleDragDialog = SimpleDragDialog;

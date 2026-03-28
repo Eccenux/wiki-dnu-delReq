@@ -1,10 +1,11 @@
+/* eslint-disable comma-dangle */
+/* eslint-disable no-var */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-useless-escape */
-/* eslint-disable array-bracket-newline */
-/* eslint-disable no-mixed-spaces-and-tabs */
 /* eslint-disable indent */
 /* global $, mw, OO */
 /* global moveToSandboxGadget */
+/* global SimpleDragDialog */
 // <nowiki>
 /**
   Support for quick deletions and closing of deletion requests at Polish Wikipedia.
@@ -57,9 +58,14 @@ var DelReqHandler =
 	close_no_result_summary : 'Nie osiągnięto konsensusu.',
 	close_eject_summary: 'Wycofano.',
 	close_move2repair_summary: 'Przeniesiono do reanimacji.',
+	close_move2repair_intro : 'Do naprawy:',
 	close_repaired_summary: 'Naprawiono.',
 	close_draft_summary: 'Przeniesiono do brudnopisu.',
 	close_redir_summary: 'Przekierowano do innego artykułu.',
+
+	label_intro  : 'Podsumowanie (hasłowe)',
+	label_textbox  : 'Uzasadnienie',
+
 	// Note! Use undescore instead of space
 	deletion_request_pages : [
 		'Wikipedia:Poczekalnia/artykuły',
@@ -245,10 +251,10 @@ var DelReqHandler =
 	 * 
 	 * Called when the user clicked one of the links.
 	 *  
-	 * @param {Number} action Which of the links has been pressed: see `actionMap`.
+	 * @param {number} action Which of the links has been pressed: see `actionMap`.
 	 * @param {Element} dnuTemplate Reference to lnDNU with article titles and action links.
-	 * @param {String} sub Subpage of the del request.
-	 * @param {String} close_href Edit link for the del req.
+	 * @param {string} subpage Subpage of the del request.
+	 * @param {string} fakeaction Action to make on close.
 	 * @returns 
 	 */
 	buttonClicked : function (action, dnuTemplate, subpage, fakeaction)
@@ -265,7 +271,7 @@ var DelReqHandler =
 		this.subpage = subpage;
 		this.reason = '[[' + subpage + ']]';
 		this.keep_summary = 'Zostawiono po dyskusji: ' + this.reason;
-		this.close_href = mw.util.getUrl(subpage, {action:'edit', fakeaction, articleTitle});
+		this.close_data = {subpage , fakeaction, articleTitle};
 
 		this.pages_to_process = [articleTitle];
 
@@ -704,10 +710,21 @@ var DelReqHandler =
 
 		var articleTitle = mw.util.getParamValue ('articleTitle'); // title of a specifc article (might be different then the subpage title)
 
-		var summary = null;
-		var result_param = null;
+		alert('Ta funkcja już nie funkcjonuje (:');
+	},
+
+	/**
+	 * Prepare closing info.
+	 * 
+	 * @param {string} fakeaction Close type (DelReqHandler.fakeaction_*).
+	 * @returns {summary, result_param}
+	 */
+	closingMapping : function(fakeaction)
+	{
+		let summary = null;
+		let result_param = null;
 		
-		switch(param)
+		switch(fakeaction)
 		{
 			case DelReqHandler.fakeaction_close_del:
 				summary = DelReqHandler.close_del_summary;
@@ -745,48 +762,92 @@ var DelReqHandler =
 			break;
 
 			case DelReqHandler.fakeaction_move_reanimation:
-				//summary = DelReqHandler.close_move2repair_summary;
+				summary = DelReqHandler.close_move2repair_summary;
 				result_param = 'reanimacja';
 			break;
 
 		}
-		
-		var $summary = $('#wpSummary');
-		let getMobileArea = () => document.querySelector('#wikitext-editor');
-		let textbox = document.editform && document.editform.wpTextbox1 ? document.editform.wpTextbox1 : getMobileArea();
 
-		// jeśli nie ma, to zakładamy, że musimy poczekać na mobilny edytor
-		if (!textbox) {
-			var interval = 200, limit = 40, overlimit = function() {
-				console.error('[dnu] textbox is undefined, auto-close summary not possible');
-				alert(JSON.stringify(summary, result_param));
-			};
-			waitForCondition(getMobileArea, () => {
-				let textbox = document.querySelector('#wikitext-editor');
-				this.setupForm($summary, textbox, summary, result_param, articleTitle);
-			}, interval, limit, overlimit);
-			return;
+		return {summary, result_param};
+	},
+
+	/**
+	 * Prepare closing edit for the article discussion.
+	 * 
+	 * Major steps:
+	 * 1. Read current version of the discussion.
+	 * 2. Allow closing user to add a comment to predefined message.
+	 * 	`'''Predefined'''. comment ––signature`.
+	 * 3. Add technical reason to lnDNU, e.g.:
+	 * 	`lnDNU|rezultat=zostawiono|data zakończenia={teraz}`.
+	 * 4. Add closing comment with predefined summary.
+	 * 
+	 * @param {string} subpage The article discussion.
+	 * @param {string} fakeaction Close type (DelReqHandler.fakeaction_*).
+	 * @param {string} articleTitle Title of the article.
+	 * @returns 
+	 */
+	closingEditOpen : async function({subpage, fakeaction, articleTitle})
+	{
+		let {summary, result_param} = this.closingMapping(fakeaction);
+
+		let closeText = summary.replace(/\.$/, '');
+
+		// prepare form
+		let sdd = this.createOrGetDialog({subclass:'c-edit', title:`${closeText} (${articleTitle})`});
+		let form = sdd.body.querySelector('form');
+		form.innerHTML = `
+			<label>${this.label_intro}</label>
+			<input type="text" style="width:100%;" class="u-intro"></textarea>
+			<label>${this.label_textbox}</label>
+			<textarea style="width:100%; height:5em;" class="u-textbox"></textarea>
+			<input type="submit" class="u-submit">
+		`;
+		let intro = form.querySelector('u-intro');
+		let textbox = form.querySelector('u-textbox');
+
+		// init form data
+		if (fakeaction === DelReqHandler.fakeaction_move_reanimation) {
+			intro.value = DelReqHandler.close_move2repair_intro;
+			textbox.value = '\* ...\n\* ...\n\~\~\~\~';
+		} else {
+			intro.value = closeText;
+			textbox.value = '  —\~\~\~\~';
 		}
-
-		setTimeout(() => {
-			this.setupForm($summary, textbox, summary, result_param, articleTitle);
-		}, 50);
+		
+		// wait for submit/close
+		let result = await new Promise((resolve, reject) => {
+			form.querySelector('.u-submit').addEventListener('click', ()=>{resolve('submit');});
+			form.addEventListener('submit', ()=>{resolve('submit');});
+			sdd.dialog.addEventListener('dialog:close', (e) => {
+				console.debug('[dnu] Dialog closed:', e.detail.reason);
+				resolve('cancel');
+			});
+			sdd.show();
+		});
+		if (result !== 'submit') {
+			return false;
+		}
+		let formData = {
+			intro: intro.value,
+			message: textbox.value,
+		};
+		console.debug('[dnu]', result, formData)
+		// TODO: await this.closingEditSubmit($summary, textbox, summary, result_param, articleTitle);
+		// TODO: zamknąć okienko dopiero po udanym zapisie
+		//sdd.hide();
 	},
 	/**
-	 * Do actual setup of the edit textbox (when closing).
+	 * Do actual submit of the closing edit.
 	 * @param {jQuery} $summary The summary input.
 	 * @param {Element} textbox The editor element.
 	 * @param {String} summary Summary to add.
 	 * @param {String} result_param One of predefined results for `lnDNU`.
 	 * @param {String} articleTitle Article title for `lnDNU`.
 	 */
-	setupForm: function($summary, textbox, summary, result_param, articleTitle) {
-		// if (this._setupForm_done) {
-		// 	console.error('[dnu]', 'setupForm run twice?:', {$summary, textbox, summary, result_param, articleTitle});
-		// 	return;
-		// }
-		// this._setupForm_done = true;
+	closingEditSubmit: async function($summary, textbox, summary, result_param, articleTitle) {
 
+		// text zamiast textbox.value
 		var isMulti = (textbox.value.match(/{{lnDNU\|/g) || []).length > 1; // the report concerncs multiple pages (articles, templates etc)
 		if (typeof articleTitle !== 'string') {
 			articleTitle = '';
@@ -868,6 +929,24 @@ var DelReqHandler =
 		}
 	},
 
+	/**
+	 * @private
+	 * @returns {SimpleDragDialog}
+	 */
+	createOrGetDialog: function ({subclass='', title=''}) {
+		let className = 'delreqhandler-sdd-' + subclass;
+		let dialog = document.querySelector('.' + className);
+		let sdd;
+		if (dialog) {
+			sdd = dialog.uSdd;
+		} else {
+			let form = document.createElement('form');
+			sdd = new SimpleDragDialog();
+			sdd.create({content:form, title, dialogClass:className});
+		}
+		return sdd;
+	},
+
 	deletePages : function()
 	{
 		if (this.pages_to_process.length == 0)
@@ -893,20 +972,12 @@ var DelReqHandler =
 	},
 
 
-	openSubpageForEdit : function()
+	openSubpageForEdit : async function()
 	{
 		this.updateProgress('Otwieram podstronę zgłoszenia do edycji...');
-		if(!window.DelReqPopup)
-		{
-			//user preferences - open edit in the same window
-			location.href = this.close_href;
-		}
-		else
-		{
-			window.open(this.close_href, '_blank');
-			this.windowManager.closeWindow( this.progressDialog );
-			document.body.style.cursor = '';
-		}
+
+		await this.closingEditOpen(this.close_data);
+
 		this.nextTask();
 	},
 
@@ -935,6 +1006,21 @@ var DelReqHandler =
 			    replace(/\(/g, '%28').replace(/\)/g, '%29').
 			    replace(/\%2F/g, '/');
 		location.href = mw.config.get('wgServer') + mw.config.get('wgArticlePath').replace("$1", title);
+	},
+
+	/** @returns {string} wikitext or false */
+	getPageContent: async function (pageName) {
+		try {
+			let data = await this.api.get({
+				action: 'parse',
+				page: pageName,
+				prop: 'wikitext',
+			});
+			return data.parse.wikitext['*'];
+		} catch(e) {
+			console.error('[dnu]', 'Failed to getPageContent', e);
+			return false;
+		}
 	},
 
 	deletePage : function (page, reason, callback, must_exists)
@@ -1133,36 +1219,5 @@ var DelReqHandler =
 
 DelReqHandler.beginLoading();
 
-/** Wait for condition (see: pendingChangesHelper). */
-function waitForCondition(condition, callback, interval, limit, overlimit) {
-	if (condition()) {
-		callback();
-	} else {
-		if (typeof interval !== 'number') {
-			interval = 200;
-		}
-		if (typeof limit !== 'number') {
-			limit = false;
-		}
-		let intervalId = setInterval(function() {
-			// console.log('waiting...');
-			if (condition()) {
-				//console.log('done');
-				clearInterval(intervalId);
-				callback();
-			}
-			if (limit !== false) {
-				limit--;
-				if (limit <= 0) {
-					clearInterval(intervalId);
-					if (typeof overlimit === 'function') {
-						overlimit();
-					}
-				}
-			}
-		}, interval);
-	}
-}
-
-})
+});
 // </nowiki>
