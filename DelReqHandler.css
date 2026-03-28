@@ -1,0 +1,45 @@
+.delreqhandler-sdd-c-edit {
+	form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	label {
+		font-size: 0.9rem;
+	}
+
+	.u-input,
+	textarea {
+		width: 100%;
+		padding: 0.4rem 0.5rem;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		font-size: 0.95rem;
+		box-sizing: border-box;
+	}
+
+	textarea {
+		min-height: 5em;
+		resize: vertical;
+	}
+
+	.u-input:focus,
+	textarea:focus {
+		border-color: #36c;
+		outline: none;
+	}
+
+	.u-submit {
+		align-self: flex-start;
+		padding: 0.4rem 0.8rem;
+		border: 1px solid #36c;
+		background: #36c;
+		color: #fff;
+		cursor: pointer;
+	}
+
+	.u-submit:hover {
+		background: #2a4fb8;
+		border-color: #2a4fb8;
+	}	
+}

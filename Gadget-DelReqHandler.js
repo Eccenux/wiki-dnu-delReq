@@ -798,9 +798,11 @@ var DelReqHandler =
 		let form = sdd.body.querySelector('form');
 		form.innerHTML = `
 			<label>${this.label_intro}</label>
-			<input type="text" style="width:100%;" class="u-intro"></textarea>
+			<input type="text" class="u-intro u-input"></textarea>
+
 			<label>${this.label_textbox}</label>
-			<textarea style="width:100%; height:5em;" class="u-textbox"></textarea>
+			<textarea class="u-textbox"></textarea>
+
 			<input type="submit" class="u-submit">
 		`;
 		let intro = form.querySelector('u-intro');
