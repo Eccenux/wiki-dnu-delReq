@@ -2,11 +2,14 @@
 	"name": "wiki-dnu-delreq",
 	"type": "commonjs",
 	"scripts": {
+		"lint": "npx eslint",
 		"deploy-dev": "node wikiploy-dev.mjs",
 		"deploy": "node wikiploy.mjs"
 	},
 	"devDependencies": {
-		"eslint": "9.x",
+		"@eslint/js": "^10.0.1",
+		"eslint": "^10.0.1",
+		"globals": "^17.3.0",
 		"wikiploy": "2.x"
 	}
 }
