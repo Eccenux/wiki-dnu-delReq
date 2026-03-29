@@ -975,8 +975,29 @@ var DelReqHandler =
 				}
 			}
 		} else {
-			text += '\n</div>\n\n\'\'\'' + intro + '\'\'\'\n' + message;
-			text = text.replace(/(\}\})(\n+[^\n:])/, '$1\n\n{{licznik czasu|zdarzenie=Czas przewidziany na reanimację|start={{subst:#timel:Y-m-d H:i:s}}|dni=60|rgz=m}}\n\n<div style="padding:20px; background:#dee; border:1px solid #aaa;">\n$2');
+			let added = false;
+			let licznik = `{{licznik czasu|zdarzenie=Czas przewidziany na reanimację|start={{subst:#timel:Y-m-d H:i:s}}|dni=60|rgz=m}}`;
+			let frameStart = `<div style="padding:1em; background:#dee; color:black; border:1px solid #aaa;">`;
+			let frameEnd = `</div>`;
+			text = text.replace(/([\s\S]+\{\{lnDNU.+\}\})([\s\S]+)/, (all, preambule, discussion)=> {
+				all = preambule.trim();
+				all += '\n\n' + licznik;
+				all += '\n\n' + frameStart + '\n';
+				all += discussion.trim();
+				all += '\n' + frameEnd;
+				all += '\n\n\'\'\'' + intro + '\'\'\'\n' + message;
+				added = true;
+				return all;
+			});
+			if (!added) {
+				warnings.push('Uwaga! Nie udało się znaleźć {{lnDNU}} i nie udało się odpowiednio otoczyć dyskusji ramką. Licznik i podsumowanie naprawy zostały jednak dodane na końcu.');
+				text += '\n\n' + licznik;
+				text += '\n\n\'\'\'' + intro + '\'\'\'\n' + message;
+				text += `\n<!--
+				|	Uwaga! Nie udało się dodać ramki. Dodaj ręcznie:
+				|   ${frameStart}${frameEnd}
+				|-->`.replace(/\n\s+\|/g, '\n');
+			}
 		}
 
 		try {
