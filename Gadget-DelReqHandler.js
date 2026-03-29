@@ -730,58 +730,58 @@ var DelReqHandler =
 	 * Prepare closing info.
 	 * 
 	 * @param {string} fakeaction Close type (DelReqHandler.fakeaction_*).
-	 * @returns {summary, result_param}
+	 * @returns {summary, resultParam}
 	 */
 	closingMapping : function(fakeaction)
 	{
 		let summary = null;
-		let result_param = null;
+		let resultParam = null;
 		
 		switch(fakeaction)
 		{
 			case DelReqHandler.fakeaction_close_del:
 				summary = DelReqHandler.close_del_summary;
-				result_param = 'usunięto';
+				resultParam = 'usunięto';
 			break;
 			
 			case DelReqHandler.fakeaction_close_keep:
 				summary = DelReqHandler.close_keep_summary;
-				result_param = 'zostawiono';
+				resultParam = 'zostawiono';
 			break;
 			
 			case DelReqHandler.fakeaction_close_no_result:
 				summary = DelReqHandler.close_no_result_summary;
-				result_param = 'brak wyniku';
+				resultParam = 'brak wyniku';
 			break;
 			
 			case DelReqHandler.fakeaction_close_repaired:
 				summary = DelReqHandler.close_repaired_summary;
-				result_param = 'naprawiono';
+				resultParam = 'naprawiono';
 			break;
 			
 			case DelReqHandler.fakeaction_close_eject:
 				summary = DelReqHandler.close_eject_summary;
-				result_param = 'wycofano';
+				resultParam = 'wycofano';
 			break;
 			
 			case 'close_draft':
 				summary = DelReqHandler.close_draft_summary;
-				result_param = 'zostawiono';//dodać do lnDNU
+				resultParam = 'zostawiono';//dodać do lnDNU
 			break;
 			
 			case 'close_redir':
 				summary = DelReqHandler.close_redir_summary;
-				result_param = 'zostawiono';//dodać do lnDNU
+				resultParam = 'zostawiono';//dodać do lnDNU
 			break;
 
 			case DelReqHandler.fakeaction_move_reanimation:
 				summary = DelReqHandler.close_move2repair_summary;
-				result_param = 'reanimacja';
+				resultParam = 'reanimacja';
 			break;
 
 		}
 
-		return {summary, result_param};
+		return {summary, resultParam};
 	},
 
 	/**
@@ -802,7 +802,7 @@ var DelReqHandler =
 	 */
 	closingEditOpen : async function({subpage, fakeaction, articleTitle})
 	{
-		let {summary, result_param} = this.closingMapping(fakeaction);
+		let {summary, resultParam} = this.closingMapping(fakeaction);
 
 		let closeText = summary.replace(/\.$/, '');
 
@@ -853,45 +853,64 @@ var DelReqHandler =
 		let formData = {
 			subpage,
 			articleTitle,
+			summary,
+			resultParam,
 			intro: intro.value,
 			message: textbox.value,
 		};
 		console.debug('[dnu]', result, formData);
-		// TODO: await this.closingEditSubmit($summary, textbox, summary, result_param, articleTitle);
-		// TODO: zamknąć okienko dopiero po udanym zapisie
-		sdd.dialog.remove();
-		this.reloadPage();
+		try {
+			let warnings = await this.closingEditSubmit(formData);
+			if (warnings.length) {
+				alert(warnings.join('\n\n'));
+			}
+			// close after edit is done
+			sdd.dialog.remove();
+			this.reloadPage();
+		} catch (error) {
+			let message = error.message;
+			if (error.cause && error.cause.message) {
+				message += '\n\nPrzyczyna błędu: ' + error.cause.message;
+			}
+			alert(message);
+		}
 	},
 	/**
 	 * Do actual submit of the closing edit.
-	 * @param {jQuery} $summary The summary input.
-	 * @param {Element} textbox The editor element.
-	 * @param {String} summary Summary to add.
-	 * @param {String} result_param One of predefined results for `lnDNU`.
-	 * @param {String} articleTitle Article title for `lnDNU`.
+	 * @param {string} subpage The disscussion page to edit (with lnDNU).
+	 * @param {string} intro The verdict in short (to be shown in bold).
+	 * @param {string} message The verdict's justification.
+	 * @param {string} summary Summary to add in edit.
+	 * @param {string} resultParam One of predefined results for `lnDNU`.
+	 * @param {string} articleTitle Article title for `lnDNU`.
 	 */
-	closingEditSubmit: async function($summary, textbox, summary, result_param, articleTitle) {
+	closingEditSubmit: async function({subpage, intro, message, summary, resultParam, articleTitle}) {
+		let text;
+		let warnings = [];
+		text = await this.getPageContent(subpage);
+		if (!text) {
+			throw new Error(`Błąd odczytu strony: ${subpage}`);
+		}
+		text = text.trim();
+		intro = intro.trim();
+		message = message.trim();
 
-		// text zamiast textbox.value
-		var isMulti = (textbox.value.match(/{{lnDNU\|/g) || []).length > 1; // the report concerncs multiple pages (articles, templates etc)
+		let isMulti = (text.match(/{{lnDNU\|/g) || []).length > 1; // the report concerncs multiple pages (articles, templates etc)
 		if (typeof articleTitle !== 'string') {
 			articleTitle = '';
 		}
 
-		if (summary !== null && result_param !== null) {
-			$summary.val(summary);
+		if (resultParam !== 'reanimacja') {
 
-			let closeText = summary.replace(/\.$/, '');
 			if (isMulti && articleTitle.length) {
 				let noWikiTag = 'nowiki';
-				closeText += ` (''<${noWikiTag}>${articleTitle}</${noWikiTag}>'')`;
+				intro += ` (''<${noWikiTag}>${articleTitle}</${noWikiTag}>'')`;
 			}
 
-			var today = this.formatDate("YYYY-MM-DD");
-			var parmasToAdd = '|rezultat=' + result_param + '|data zakończenia=' + today;
+			let today = this.formatDate("YYYY-MM-DD");
+			let parmasToAdd = '|rezultat=' + resultParam + '|data zakończenia=' + today;
 			
-			// Note: The period should follow the bold text, so mobile keyboards switch to sentence-begin mode (capitalize the first letter).
-			let text = textbox.value + '\n----\n\'\'\'' + closeText + '\'\'\'.  \~\~\~\~';
+			text += '\n----\n\'\'\'' + intro + '\'\'\'. ' + message;
 			// single lnDNU
 			if (!isMulti) {
 				text = text.replace(/(\{\{lnDNU)\|rezultat=[^\|]+\|data zakończenia=[^\|]+/g, '$1');
@@ -922,6 +941,7 @@ var DelReqHandler =
 					return start + params + end;
 				});
 				if (!added) {
+					warnings.push('Uwaga! Nie udało się znaleźć odpowiedniego {{lnDNU}} i zmienić jego parametry. Informacja została dodana w edycji.');
 					text += `\n<!--
 					|	Uwaga! Nie udało się znaleźć odpowiedniego {{lnDNU}} i zmienić jego parametry.
 					|	Powtórzona akcja?
@@ -932,26 +952,21 @@ var DelReqHandler =
 					|-->`.replace(/\n\s+\|/g, '\n');
 				}
 			}
-			textbox.value = text;	
-
-			// Don't close the window so the user can add a comment.
-			if (text.scrollHeight > text.clientHeight) {
-				text.scrollTop = text.scrollHeight - text.clientHeight;
-			}
-			textbox.focus();
-		} else if (result_param === 'reanimacja') {
-			$summary.val(DelReqHandler.close_move2repair_summary);
-			
-			let text = textbox.value + '\n</div>\n\n\'\'\'Do naprawy:\'\'\'\n\* ...\n\* ...\n\~\~\~\~';
+		} else {
+			text += '\n</div>\n\n\'\'\'' + intro + '\'\'\'\n' + message;
 			text = text.replace(/(\}\})(\n+[^\n:])/, '$1\n\n{{licznik czasu|zdarzenie=Czas przewidziany na reanimację|start={{subst:#timel:Y-m-d H:i:s}}|dni=60|rgz=m}}\n\n<div style="padding:20px; background:#dee; border:1px solid #aaa;">\n$2');
-			textbox.value = text;	
-
-			// Don't close the window so the user can add a comment.
-			if (text.scrollHeight > text.clientHeight) {
-				text.scrollTop = text.scrollHeight - text.clientHeight;
-			}
-			textbox.focus();
 		}
+
+		try {
+			await this.api.postWithEditToken({action: 'edit', title: subpage, summary, text});
+		} catch (error) {
+			console.error('[dnu] save closing edit failed:', error);
+			throw new Error(`Błąd zapisu strony: ${subpage}`, {
+				cause: error,
+			});
+		}
+
+		return warnings;
 	},
 
 	/**
