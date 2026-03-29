@@ -199,23 +199,41 @@ var DelReqHandler =
 		var items = [];
 	
 		if (isAdmin) {
-			items.push(this.createActionButton(this.actionMap.delete, {label: 'Usuń', icon: 'trash', flags: 'destructive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_del));
+			items.push(this.createActionButton(this.actionMap.delete
+				, {label: 'Usuń', title: 'Przewaga argumentów za usunięciem (usuwa artykuł, archiwizuje zgł., dodajesz werdykt).', icon: 'trash', flags: 'destructive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_close_del));
 		}
 	
 		if (!this.isSubpage('reanimacja', subpage)) {
-			items.push(this.createActionButton(this.actionMap.keep, {label: 'zostaw', icon: 'articleCheck', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_keep));
-			items.push(this.createActionButton(this.actionMap.noResult, {label: 'brak wyniku', icon: 'help', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_no_result));
-			items.push(this.createActionButton(this.actionMap.toArchive, {label: 'do arch.', icon: 'tray', flags: 'progressive', framed: false}, dnuTemplate, subpage, ''));
-			items.push(this.createActionButton(this.actionMap.reject, {label: 'wycofaj', icon: 'undo', flags: 'progressive', framed: false}, dnuTemplate, subpage, ''));
-			items.push(this.createActionButton(this.actionMap.draft, {label: 'brudnopis', icon: 'sandbox', flags: 'progressive', framed: false}, dnuTemplate, subpage, 'close_draft'));
-			items.push(this.createActionButton(this.actionMap.redirect, {label: 'redir', icon: 'articleRedirect', flags: 'progressive', framed: false}, dnuTemplate, subpage, 'close_redir'));
+			items.push(this.createActionButton(this.actionMap.keep
+				, {label: 'zostaw', title: 'Przewaga argumentów za zostawieniem (zostawia artykuł, archiwizuje zgł., dodajesz werdykt).', icon: 'articleCheck', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_close_keep));
+			items.push(this.createActionButton(this.actionMap.noResult
+				, {label: 'brak wyniku', title: 'Nierozstrzygnięte, brak konsensusu (zostawia na razie, archiwizuje zgł., dodajesz werdykt).', icon: 'help', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_close_no_result));
+			items.push(this.createActionButton(this.actionMap.toArchive
+				, {label: 'do arch.', title: 'Tylko archiwizuje zgłoszenie (nie zmienia artykuł!).', icon: 'tray', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, ''));
+			items.push(this.createActionButton(this.actionMap.reject
+				, {label: 'wycofaj', title: 'Wycofuje zgłoszenie (wycofuje szablon z artykułu, archiwizuje zgł.).', icon: 'undo', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, ''));
+			items.push(this.createActionButton(this.actionMap.draft
+				, {label: 'brudnopis', title: 'Przenosi do poprawy osobistej (zostawia na razie u twórcy, archiwizuje zgł., dodajesz werdykt).', icon: 'sandbox', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, 'close_draft'));
+			items.push(this.createActionButton(this.actionMap.redirect
+				, {label: 'redir', title: 'Zmienia na przekierowanie/integruje, nie przenosi (artykuł podmienia na przekierowanie, archiwizuje zgł., dodajesz werdykt).', icon: 'articleRedirect', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, 'close_redir'));
 		} else {
-			items.push(this.createActionButton(this.actionMap.repaired, {label: 'naprawiono', icon: 'articleCheck', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_repaired));
+			items.push(this.createActionButton(this.actionMap.repaired
+				, {label: 'naprawiono', title: 'Pozytywne zakończenie (zostawia artykuł, archiwizuje zgł., dodajesz werdykt).', icon: 'articleCheck', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_close_repaired));
 		}
 	
-		if (this.isSubpage('artykuły', subpage) || this.isSubpage('biografie', subpage)) {
+		if (this.isSubpage('artykuły', subpage) || this.isSubpage('biografie', subpage) || mw.config.get('wgPageName').includes('/test_poczekalni/')) {
 			// icons?: clock, labFlask, ongoingConversation
-			items.push(this.createActionButton(this.actionMap.reanimation, {label: 'reanimacja', icon: 'labFlask', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_move_reanimation));
+			items.push(this.createActionButton(this.actionMap.reanimation
+				, {label: 'reanimacja', title: 'Szansa na poprawki (przenosi do reanimacji, dodajesz info co naprawić).', icon: 'labFlask', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_move_reanimation));
 		}
 	
 		var buttonGroup = new OO.ui.ButtonGroupWidget({
@@ -325,10 +343,14 @@ var DelReqHandler =
 			break;
 		}
 		
-		this.addTask('removeSubpage');
-		this.addTask('openSubpageForEdit');
+		this.addTask('removeSubpage'); // usuń podstronę z listy
+		if (fakeaction) {
+			this.addTask('openSubpageForEdit'); // werdykt/info do dyskusji
+		}
 
-		this.nextTask();
+		// uruchom pierwsze zadanie (i potem zadania uruchamiają kolejne)
+		// ...czyli Promise w wersji daisy-chain (i tak, tak samo kruchy)
+		this.nextTask(); 
 	},
 	
 	moveToDraft : function ()
