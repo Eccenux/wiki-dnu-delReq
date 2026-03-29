@@ -536,6 +536,13 @@ var DelReqHandler =
 	//and contain the text spcifed in archive_section_line
 	addSubpageToArchive : function()
 	{
+		// skip when testing
+		if (mw.config.get('wgCanonicalNamespace') === 'User') {
+			console.warn('[dnu]', 'addSubpageToArchive skipped for user test-page');
+			this.nextTask();
+			return;
+		}
+
 		this.updateProgress('Dodaję podstronę do archiwum 24...');
 
 		this.parent_page = this.findParentPage(this.subpage);
@@ -636,6 +643,13 @@ var DelReqHandler =
 	//removes a subpage inclusion from the main request page
 	removeSubpage : function()
 	{
+		// skip when testing
+		if (mw.config.get('wgCanonicalNamespace') === 'User') {
+			console.warn('[dnu]', 'removeSubpage skipped for user test-page');
+			this.nextTask();
+			return;
+		}
+
 		this.updateProgress();
 		var that = this;
 
