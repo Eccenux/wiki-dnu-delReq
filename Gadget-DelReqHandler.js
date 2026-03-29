@@ -327,7 +327,6 @@ var DelReqHandler =
 		
 		this.addTask('removeSubpage');
 		this.addTask('openSubpageForEdit');
-		this.addTask('reloadPage');
 
 		this.nextTask();
 	},
@@ -819,8 +818,8 @@ var DelReqHandler =
 
 			<input type="submit" class="u-submit">
 		`;
-		let intro = form.querySelector('u-intro');
-		let textbox = form.querySelector('u-textbox');
+		let intro = form.querySelector('.u-intro');
+		let textbox = form.querySelector('.u-textbox');
 
 		// init form data
 		if (fakeaction === DelReqHandler.fakeaction_move_reanimation) {
@@ -852,6 +851,7 @@ var DelReqHandler =
 		// TODO: await this.closingEditSubmit($summary, textbox, summary, result_param, articleTitle);
 		// TODO: zamknąć okienko dopiero po udanym zapisie
 		//sdd.hide();
+		// TODO: reloadPage dla tych co lubią
 	},
 	/**
 	 * Do actual submit of the closing edit.
@@ -990,11 +990,14 @@ var DelReqHandler =
 
 	openSubpageForEdit : async function()
 	{
-		this.updateProgress('Otwieram podstronę zgłoszenia do edycji...');
+		this.updateProgress('Otwieram formularz zamykania...');
 
-		await this.closingEditOpen(this.close_data);
+		//await this.closingEditOpen(this.close_data); // można by czekać, ale właściwie po co...
+		this.closingEditOpen(this.close_data);
 
-		this.nextTask();
+		setTimeout(()=>{
+			this.nextTask();
+		}, 1000);
 	},
 
 	/**
