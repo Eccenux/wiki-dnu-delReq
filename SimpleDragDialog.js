@@ -4,11 +4,23 @@
  * To get an instance of this class use `dialog.uSdd`.
  */
 class SimpleDragDialog {
+	constructor() {
+		/** ID of the container. */
+		this.sddId = 'sdragdialog-dialogs';
+	}
 	show() {
+		this.dialog.classList.remove('hidden');
 		this.dialog.style.display = '';
 	}
 	hide() {
+		this.dialog.classList.add('hidden');
 		this.dialog.style.display = 'none';
+	}
+	/** Count of dialogs. */
+	dialogsCount() {
+		let sddContainer = document.getElementById(this.sddId);
+		if (!sddContainer) return 0;
+		return sddContainer.querySelectorAll('.sdragdialog-dialog:not(.hidden)').length;
 	}
 	/**
 	 * Creates draggable dialog window.
@@ -21,8 +33,9 @@ class SimpleDragDialog {
 	create({content = '', title = '', dialogClass = '', startHidden = true} = {}) {
 		// container
 		const dialog = document.createElement('div'); // OR dialog?
+		this.dialog = dialog;
 		if (startHidden) {
-			dialog.style.display = 'none';
+			this.hide();
 		}
 		dialog.classList.add('sdragdialog-dialog');
 		if (dialogClass) {
@@ -74,7 +87,7 @@ class SimpleDragDialog {
 		// finalize
 		dialog.appendChild(header);
 		dialog.appendChild(body);
-		const sddId = 'sdragdialog-dialogs';
+		const sddId = this.sddId;
 		let sddContainer = document.getElementById(sddId);
 		if (!sddContainer) {
 			sddContainer = document.createElement('div');

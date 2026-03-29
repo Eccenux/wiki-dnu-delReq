@@ -1009,9 +1009,16 @@ var DelReqHandler =
 	* force - if true, the page will be reloaded no matter user preferences
 	**/
 	reloadPage : function (force) {
-		if (!force && (!window.DelReqPopup || window.DelReqDontReload))
+		if (!force && !window.DelReqReload) {
 			//user preferences - don't reload when finished
 			return;
+		}
+
+		// check if forms are still open
+		let sdd = new SimpleDragDialog();
+		if (sdd.dialogsCount()) {
+			return;
+		}
 
 		if (this.there_are_warnings === true)
 		{
