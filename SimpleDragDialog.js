@@ -117,6 +117,28 @@ class SimpleDragDialog {
 			document.body.style.userSelect = '';
 		});
 	}
+
+	/**
+	 * Centers the dialog within the viewport.
+	 *
+	 * Can center horizontally, vertically, or both.
+	 *
+	 * @param {Object} [options]
+	 * @param {boolean} [options.x=true] Center horizontally (X axis).
+	 * @param {boolean} [options.y=true] Center vertically (Y axis).
+	 */
+	center ({x=true, y=true}={}) {
+		const dialog = this.dialog;
+
+		const rect = dialog.getBoundingClientRect();
+		let offsetX = x ? (window.innerWidth - rect.width) / 2 : 0;
+		let offsetY = y ? (window.innerHeight - rect.height) / 2 : 0;
+
+		dialog.style.right = 'auto';
+		dialog.style.bottom = 'auto';
+		dialog.style.left = offsetX + 'px';
+		dialog.style.top = offsetY + 'px';
+	}
 }
 
 // export

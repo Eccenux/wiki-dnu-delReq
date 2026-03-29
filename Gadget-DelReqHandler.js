@@ -807,13 +807,13 @@ var DelReqHandler =
 		let closeText = summary.replace(/\.$/, '');
 
 		// prepare form
-		let sdd = this.createOrGetDialog({subclass:'c-edit', title:`${closeText} (${articleTitle})`});
+		let sdd = this.createDialog({subclass:'c-edit', title:`${closeText} (${articleTitle})`});
 		let form = sdd.body.querySelector('form');
 		form.innerHTML = `
-			<label>${this.label_intro}</label>
+			<label>${this.label_intro}:</label>
 			<input type="text" class="u-intro u-input"></textarea>
 
-			<label>${this.label_textbox}</label>
+			<label>${this.label_textbox}:</label>
 			<textarea class="u-textbox"></textarea>
 
 			<input type="submit" class="u-submit">
@@ -832,26 +832,35 @@ var DelReqHandler =
 		
 		// wait for submit/close
 		let result = await new Promise((resolve, reject) => {
-			form.querySelector('.u-submit').addEventListener('click', ()=>{resolve('submit');});
-			form.addEventListener('submit', ()=>{resolve('submit');});
+			let submit = (e)=>{
+				e.preventDefault();
+				resolve('submit');
+			};
+			form.querySelector('.u-submit').addEventListener('click', submit);
+			form.addEventListener('submit', submit);
+
 			sdd.dialog.addEventListener('dialog:close', (e) => {
 				console.debug('[dnu] Dialog closed:', e.detail.reason);
 				resolve('cancel');
 			});
+
 			sdd.show();
+			sdd.center({x:1,y:0});
 		});
 		if (result !== 'submit') {
 			return false;
 		}
 		let formData = {
+			subpage,
+			articleTitle,
 			intro: intro.value,
 			message: textbox.value,
 		};
-		console.debug('[dnu]', result, formData)
+		console.debug('[dnu]', result, formData);
 		// TODO: await this.closingEditSubmit($summary, textbox, summary, result_param, articleTitle);
 		// TODO: zamknąć okienko dopiero po udanym zapisie
-		//sdd.hide();
-		// TODO: reloadPage dla tych co lubią
+		sdd.dialog.remove();
+		this.reloadPage();
 	},
 	/**
 	 * Do actual submit of the closing edit.
@@ -949,17 +958,12 @@ var DelReqHandler =
 	 * @private
 	 * @returns {SimpleDragDialog}
 	 */
-	createOrGetDialog: function ({subclass='', title=''}) {
+	createDialog: function ({subclass='', title=''}) {
 		let className = 'delreqhandler-sdd-' + subclass;
-		let dialog = document.querySelector('.' + className);
 		let sdd;
-		if (dialog) {
-			sdd = dialog.uSdd;
-		} else {
-			let form = document.createElement('form');
-			sdd = new SimpleDragDialog();
-			sdd.create({content:form, title, dialogClass:className});
-		}
+		let form = document.createElement('form');
+		sdd = new SimpleDragDialog();
+		sdd.create({content:form, title, dialogClass:className});
 		return sdd;
 	},
 
@@ -1068,6 +1072,11 @@ var DelReqHandler =
 		this.tasks.push( task );
 	},
 	nextTask : function () {
+		if (!this.tasks.length) {
+			// done
+			this.prematureEnd();
+			return;
+		}
 		var task = this.currentTask = this.tasks.shift();
 		try {
 			this[task]();
