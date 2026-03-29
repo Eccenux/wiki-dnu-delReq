@@ -66,10 +66,10 @@ https://pl.wikipedia.org/wiki/Dyskusja_wikipedysty:Nux/Archiwum/53#c-AramilFerax
 	- Czy się ładnie rozciąga? -> tak 🙂
 	- Przewijanie: wnętrza dialogu, czy ze stroną? (ograniczanie wysokiego dialogu)? -> niepotrzebne 🙂, przewijanie tekstu pod spodem działa.
 - [x] Test przenoszenia do brudnopisu. Czy tam działa podsumowanie? Najpierw okienko z akcją przenoszenia, a potem podsumowanie aka werdykt.
-- [ ] Roll gadżetu.
-- [ ] Nowe zależności dla gadżetu.
-- [ ] Aktualizacja docs.
-- [ ] Info na WP:TO.
+- [x] Roll gadżetu.
+- [x] Nowe zależności dla gadżetu.
+- [x] Aktualizacja docs.
+- [x] Info na WP:TO.
 
 ```js
 // See documentation at: 
