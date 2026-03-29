@@ -38,42 +38,38 @@ Wsparcie dla mobilnego edytora. Haksior przed lepszym rozwiązaniem (lepsze = ok
 Przykładowy URL mobilny (fakeaction dodane przez DelReq):
 https://pl.m.wikipedia.org/w/index.php?title=Wikipedia%3APoczekalnia%2Fartyku%C5%82y%2F2024%3A09%3A09%3AChamp_%28kryptozoologia%29&fakeaction=close_del#/editor/all
 
-### part 2b: close dialog:
+### part 3: dialog save (close via popup, not edit page)
 
-Opowieść użytecznicza:
-https://pl.m.wikipedia.org/wiki/Dyskusja_wikipedysty:Nux?markasread=29163559&markasreadwiki=plwiki#c-AramilFeraxa-20240924085100-MediaWiki:Gadget-DelReqHandler.js
+Opowieść użytkownika o zamykaniu wielu zgłoszeń (zwłaszcza multi):
+https://pl.wikipedia.org/wiki/Dyskusja_wikipedysty:Nux/Archiwum/53#c-AramilFeraxa-20240924085100-MediaWiki:Gadget-DelReqHandler.js
 
-- [ ] BTW. po anulowaniu przenoszenia do brudnopisu występuje błąd, którego nie można zamknąć.
-	Zmienić to na okienko informacje w stylu obsługi zamykania nominacji CW (takie `OO.ui`).
-	Sprawdzić czy ESC działa.
-- [ ] BTW. przy przenoszenie do brudnopisu, po anulowaniu nie powinno tego traktować jak błąd. Zamiast tego dać ogólne okienko -- "Operacja anulowana. Żadne zmiany nie zostały jeszcze wykonane." (bo w sumie to nie jest oczywiste).
-- [ ] BTW. przy przenoszenie do brudnopisu, po anulowaniu nie powinno tego traktować jak błąd.
-...
-- [ ] Zaadaptować okienko z przenoszenia do brudnopisu.
-	- [ ] W tytule okienka dodać informację o wykonywanej akcji.
-		Tytuł: "Przygotowanie do zamknięcia".
-		Akcja: ... (tylko etykieta, bez możliwości zmiany).
-	- [ ] Zamiast wiadomości dla użytkownika. "Podsumowanie dyskusji"
-- [ ] Dodatkowy, zwijany HTML z treścią dyskusji (tagi summary/details?).
-- [ ] Testy i dostosowanie scroll dla wersji mobilnej -- poszukać jakiejś długiej dyskusji. Lepsze będzie przewijanie wnętrza dialogu, przewijanie details, czy bardzo wysoki dialog?
-- [ ] Może też dodatkowo link do otworzenia zgłoszenia w nowym oknie?
-- [ ] Link do otworzenia artu w nowym oknie? Może przynajmniej nazwa, żeby wiedzieć co się komentuje.
-- [ ] Przy otwieraniu okna wstawić wstępny komentarz na podstawie akcji (tak jak do tej pory, tj. usunięto w boldzie itp).
-- [ ] Info, że podpis będzie dodany automatycznie.
-- [ ] Dopiero pod zatwierdzeniu pobranie strony i odpowiednie podmiany, czyli:
-	- podmiana lnDNU jak do tej pory, ale dla konkretnego tytułu artykułu (wsparcie dla masowych zgłoszeń).
-	- wykrycie i usunięcie końcowych tyld oraz minusów (`/-*~~~+/`).
-	- dopisanie komentarza i podpis (tyldy).
-- [ ] I co na koniec?
-	Odświeżać stronę? Chyba nie, bo mogę być w różnych miejscach strony...
-	Ukrywać tylko przyciski? Samo ukrycie może nie być wystarczające. Nie będzie widać czy się udało na pewno.
-	Ukrycie i dopisek "Pomyślnie zamknięto [zgłoszenie]" (z linkiem do zgłoszenia ustawionym na target_blank).
-- [ ] Zmiana również przenoszenia do brudnopisu, tam też jest podsumowanie. Czyli najpierw okienko z akcją wiadomość, a potem podsumowanie.
-...
-- [ ] I jak już będzie można wszystko anulować, to wyłączyć to początkowe potwierdzenie ("Czy na pewno wykonać akcję?").
-- [ ] Dodać przycisk "Brak komentarza" (jeśli komentarz już istnieje)? A może powinien być zawsze rezultat przynajmniej?
-- [ ] Ukryć/wyszarzyć przyciski dla `(.dnu-result).textContent != 'rezultat-nn'`. A może pokazać jakieś info w zamian?
-- [ ] Nie dodawać linków dla `.dnu-done`? A może wg rezultatu (linki tylko dla klasy `rezultat-nn`)?
+#### Formularz zamykania
+- [x] refsTB.createDraggableDialog -> SimpleDragDialog
+- [x] Adaptacja CSS do okienka dialogowego (prefix `sdragdialog-` zamist `refstb-`)
+- Formularz:
+	- [x] this.maybeSetupForm(); -> zalążek obsługi edycji -> closingEditOpen()
+	- [x] otwarcie okienka
+	- [x] wstawienie bazowego info
+	- [x] nowe wdrażanie wikiploy-dev.
+	- [x] podpięcie otwierania do... openSubpageForEdit()?
+- Zapis:
+	- [x] pobranie danych bieżącej dyskusji (`this.api.edit`?);
+	- [x] przerobione setupForm na closingEditSubmit.
+- Dodatki formularza:
+	- [x] link do podstrony dyskusji + do jej edycji
+	- [x] info po udanym zapisie
+
+#### BTW i wykończenia
+- [x] BTW. poprawka obsługi reanimacji (źle otacza divem, brak koloru dla dark mode).
+- [x] BTW. poprawka obsługi błędów (obecnie blokują zgłaszanie problemów, potencjał na XSS...).
+- [ ] Testy i dostosowanie scroll dla wersji mobilnej.
+	- Czy się ładnie rozciąga?
+	- Przewijanie: wnętrza dialogu, czy ze stroną? (ograniczanie wysokiego dialogu)?
+- [ ] Test przenoszenia do brudnopisu. Czy tam działa podsumowanie? Najpierw okienko z akcją przenoszenia, a potem podsumowanie aka werdykt.
+- [ ] Roll gadżetu.
+- [ ] Nowe zależności dla gadżetu.
+- [ ] Aktualizacja docs.
+- [ ] Info na WP:TO.
 
 ```js
 // See documentation at: 
