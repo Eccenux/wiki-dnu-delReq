@@ -62,10 +62,10 @@ https://pl.wikipedia.org/wiki/Dyskusja_wikipedysty:Nux/Archiwum/53#c-AramilFerax
 #### BTW i wykończenia
 - [x] BTW. poprawka obsługi reanimacji (źle otacza divem, brak koloru dla dark mode).
 - [x] BTW. poprawka obsługi błędów (obecnie blokują zgłaszanie problemów, potencjał na XSS...).
-- [ ] Testy i dostosowanie scroll dla wersji mobilnej.
-	- Czy się ładnie rozciąga?
-	- Przewijanie: wnętrza dialogu, czy ze stroną? (ograniczanie wysokiego dialogu)?
-- [ ] Test przenoszenia do brudnopisu. Czy tam działa podsumowanie? Najpierw okienko z akcją przenoszenia, a potem podsumowanie aka werdykt.
+- [x] Testy i dostosowanie scroll dla wersji mobilnej.
+	- Czy się ładnie rozciąga? -> tak 🙂
+	- Przewijanie: wnętrza dialogu, czy ze stroną? (ograniczanie wysokiego dialogu)? -> niepotrzebne 🙂, przewijanie tekstu pod spodem działa.
+- [x] Test przenoszenia do brudnopisu. Czy tam działa podsumowanie? Najpierw okienko z akcją przenoszenia, a potem podsumowanie aka werdykt.
 - [ ] Roll gadżetu.
 - [ ] Nowe zależności dla gadżetu.
 - [ ] Aktualizacja docs.
