@@ -16,6 +16,11 @@
 		border-radius: 4px;
 		font-size: 0.95rem;
 		box-sizing: border-box;
+
+		&:focus {
+			border-color: #36c;
+			outline: none;
+		}
 	}
 
 	textarea {
@@ -23,12 +28,7 @@
 		resize: vertical;
 	}
 
-	.u-input:focus,
-	textarea:focus {
-		border-color: #36c;
-		outline: none;
-	}
-
+	.u-body button,
 	.u-submit {
 		align-self: flex-start;
 		padding: 0.4rem 0.8rem;
@@ -36,10 +36,20 @@
 		background: #36c;
 		color: #fff;
 		cursor: pointer;
+
+		&:hover {
+			background: #2a4fb8;
+			border-color: #2a4fb8;
+		}	
 	}
 
-	.u-submit:hover {
-		background: #2a4fb8;
-		border-color: #2a4fb8;
-	}	
+	.u-actions {
+		border-top: 1px solid #ccc;
+		margin-top: .5em;
+		padding-top: .5em;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 1em;
+	}
 }

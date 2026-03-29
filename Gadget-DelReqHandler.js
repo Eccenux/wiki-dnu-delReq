@@ -65,6 +65,7 @@ var DelReqHandler =
 
 	label_intro  : 'Podsumowanie (hasłowe)',
 	label_textbox  : 'Uzasadnienie',
+	label_close_submit  : 'Zapisz uzasadnienie',
 
 	// fail reporting
 	feedbackPage: "Dyskusja MediaWiki:Gadget-DelReqHandler.js",
@@ -565,7 +566,7 @@ var DelReqHandler =
 		// mock action
 		setTimeout(()=>{
 			this.nextTask();
-		}, 2000);
+		}, 1000);
 	},
 
 	//Moves the given subpage to a temporary archive
@@ -853,14 +854,19 @@ var DelReqHandler =
 		// prepare form
 		let sdd = this.createDialog({subclass:'c-edit', title:`${closeText} (${articleTitle})`});
 		let form = sdd.body.querySelector('form');
+		let artUrl = '/wiki/' + mw.util.wikiUrlencode(subpage);
+		let artEditUrl = '/wiki/' + mw.util.wikiUrlencode(subpage) + '?action=edit';
 		form.innerHTML = `
+			<div><a href="${artUrl}" target="_blank" title="${this.i18n.openInNewTab(subpage)}">${subpage}</a>
+				[ <a href="${artEditUrl}" target="_blank" title="${this.i18n.editInNewTab(subpage)}">${this.i18n.edit}</a> ]
+			</div>
 			<label>${this.label_intro}:</label>
 			<input type="text" class="u-intro u-input"></textarea>
 
 			<label>${this.label_textbox}:</label>
 			<textarea class="u-textbox"></textarea>
 
-			<input type="submit" class="u-submit">
+			<input type="submit" class="u-submit" value="${this.label_close_submit}">
 		`;
 		let intro = form.querySelector('.u-intro');
 		let textbox = form.querySelector('.u-textbox');
@@ -878,6 +884,7 @@ var DelReqHandler =
 		let result = await new Promise((resolve, reject) => {
 			let submit = (e)=>{
 				e.preventDefault();
+				document.body.style.cursor = 'wait';
 				resolve('submit');
 			};
 			form.querySelector('.u-submit').addEventListener('click', submit);
@@ -892,6 +899,7 @@ var DelReqHandler =
 			sdd.center({x:1,y:0});
 		});
 		if (result !== 'submit') {
+			document.body.style.cursor = '';
 			return false;
 		}
 		let formData = {
@@ -905,13 +913,26 @@ var DelReqHandler =
 		console.debug('[dnu]', result, formData);
 		try {
 			let warnings = await this.closingEditSubmit(formData);
+			document.body.style.cursor = '';
 			if (warnings.length) {
 				alert(warnings.join('\n\n'));
 			}
 			// close after edit is done
-			sdd.dialog.remove();
-			this.reloadPage();
+			form.innerHTML = `
+				<div>${this.i18n.savedPage(subpage)}</div>
+				<div class="u-actions">
+					<button class="u-done">OK</button>
+					<a class="u-reload" href="#">${this.i18n.reloadPage}</a>
+				</div>
+			`;
+			sdd.center();
+			form.querySelector('.u-done').addEventListener('click', () => {
+				sdd.dialog.remove();
+				this.reloadPage();
+			});
+			form.querySelector('.u-reload').href = location.href;
 		} catch (error) {
+			document.body.style.cursor = '';
 			let message = error.message;
 			if (error.cause && error.cause.message) {
 				message += '\n\nPrzyczyna błędu: ' + error.cause.message;
@@ -1368,8 +1389,12 @@ var DelReqHandler =
 			Uwaga! W większości wypadków błędy wynikają z tego, że ktoś inny zamykał to samo zgłoszenie co Ty. <strong>Odśwież stronę i spróbuj ponownie</strong>.
 			Prześlij zgłoszenie o błędzie jeśli po odświeżeniu nadal coś nie działa choć powinno.
 		`,
-		errorReport           : "Prześlij zgłoszenie",
-		reloadPage           : "Odśwież stronę",
+		errorReport: "Prześlij zgłoszenie",
+		reloadPage: "Odśwież stronę",
+		edit: "edytuj",
+		savedPage: (subpage) => `Zapisano zmiany w „${subpage}”.`,
+		openInNewTab: (subpage) => `Otwórz podgląd w nowym oknie: ${subpage}.`,
+		editInNewTab: (subpage) => `Edytuj w nowym oknie: ${subpage}.`,
 	}
 
 }; // End of DelReqHandler
