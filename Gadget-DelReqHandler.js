@@ -66,6 +66,8 @@ var DelReqHandler =
 	label_intro  : 'Podsumowanie (hasłowe)',
 	label_textbox  : 'Uzasadnienie',
 
+	// fail reporting
+	feedbackPage: "Dyskusja MediaWiki:Gadget-DelReqHandler.js",
 	// Note! Use undescore instead of space
 	deletion_request_pages : [
 		'Wikipedia:Poczekalnia/artykuły',
@@ -218,7 +220,7 @@ var DelReqHandler =
 				, {label: 'wycofaj', title: 'Wycofuje zgłoszenie (wycofuje szablon z artykułu, archiwizuje zgł.).', icon: 'undo', flags: 'progressive', framed: false}
 				, dnuTemplate, subpage, ''));
 			items.push(this.createActionButton(this.actionMap.draft
-				, {label: 'brudnopis', title: 'Przenosi do poprawy osobistej (zostawia na razie u twórcy, archiwizuje zgł., dodajesz werdykt).', icon: 'sandbox', flags: 'progressive', framed: false}
+				, {label: 'brudnopis', title: 'Przenosi do brudnopisu (zostawia u twórcy lub innych chętnych, archiwizuje zgł., dodajesz werdykt).', icon: 'sandbox', flags: 'progressive', framed: false}
 				, dnuTemplate, subpage, 'close_draft'));
 			items.push(this.createActionButton(this.actionMap.redirect
 				, {label: 'redir', title: 'Zmienia na przekierowanie/integruje, nie przenosi (artykuł podmienia na przekierowanie, archiwizuje zgł., dodajesz werdykt).', icon: 'articleRedirect', flags: 'progressive', framed: false}
@@ -551,20 +553,34 @@ var DelReqHandler =
 	archive_page : '',
 	//the subpage which is being moved to archive
 
+	skipWhenTesting : function()
+	{
+		// mock error (with some rand chance)
+		if (location.hash.includes('mock-error=1') && Math.random() < 1/2) {
+			return DelReqHandler.apiFail(403, 'Random error test', this.currentTask);
+		}
+
+		// skip when testing
+		console.warn('[dnu]', this.currentTask + ' skipped for user test-page');
+		// mock action
+		setTimeout(()=>{
+			this.nextTask();
+		}, 2000);
+	},
+
 	//Moves the given subpage to a temporary archive
 	//The archive should be at a page titled like the one with the deletion requests
 	//  ended with " załatwione 24".
 	//and contain the text spcifed in archive_section_line
 	addSubpageToArchive : function()
 	{
+		this.updateProgress('Dodaję podstronę do archiwum 24...');
+
 		// skip when testing
 		if (mw.config.get('wgCanonicalNamespace') === 'User') {
-			console.warn('[dnu]', 'addSubpageToArchive skipped for user test-page');
-			this.nextTask();
+			this.skipWhenTesting();
 			return;
 		}
-
-		this.updateProgress('Dodaję podstronę do archiwum 24...');
 
 		this.parent_page = this.findParentPage(this.subpage);
 		this.archive_page = this.parent_page + ' załatwione 24';
@@ -621,9 +637,15 @@ var DelReqHandler =
 	{
 		this.updateProgress('Dodaję podstronę do stolika reanimacja...');
 
+		// skip when testing
+		if (mw.config.get('wgCanonicalNamespace') === 'User') {
+			this.skipWhenTesting();
+			return;
+		}
+
 		this.parent_page = this.findParentPage(this.subpage);
 		this.to_page = 'Wikipedia:Poczekalnia/reanimacja';
-		
+
 		var that = this;
 		
 		this.api.edit(
@@ -664,14 +686,14 @@ var DelReqHandler =
 	//removes a subpage inclusion from the main request page
 	removeSubpage : function()
 	{
+		this.updateProgress();
+
 		// skip when testing
 		if (mw.config.get('wgCanonicalNamespace') === 'User') {
-			console.warn('[dnu]', 'removeSubpage skipped for user test-page');
-			this.nextTask();
+			this.skipWhenTesting();
 			return;
 		}
 
-		this.updateProgress();
 		var that = this;
 
 		this.api.edit(
@@ -1234,40 +1256,77 @@ var DelReqHandler =
 	},
 
 	/**
-      * Crude error handler. Just throws an alert at the user and (if we managed to
-      * add the {delete} tag) reloads the page.
-      **/
+	 * Error handler for in-process failures.
+	 * 
+	 * Note! This is non-blocking, but will clear tasks effectively ending the process.
+	 * 
+	 * @param {string} err 
+	 */
 	fail : function ( err ) {
-		var that = this;
-		document.body.style.cursor = 'default';
-		var msg = this.i18n.taskFailure[this.currentTask] || this.i18n.genericFailure;
-		var fix = '';//(this.templateAdded ? this.i18n.completeRequestByHand : this.i18n.addTemplateByHand );
+		let msg = this.i18n.taskFailure[this.currentTask] || this.i18n.genericFailure;
+		let fix = '';//(this.templateAdded ? this.i18n.completeRequestByHand : this.i18n.addTemplateByHand );
 
-		$('#feedbackContainer').html(msg + " " + fix + "<br>" + this.i18n.errorDetails + "<hr>" + mw.html.escape(err) + "<hr><a id=\"feedbackContainerfeedback\" href=\"" + mw.config.get('wgServer') + "/wiki/Dyskusja MediaWiki:Gadget-DelReqHandler.js\">" + this.i18n.errorReport +"</a>");
-		$('#feedbackContainer').addClass('ajaxDeleteError');
-		this.progressDialog.$body.resize();
+		let warningsHtml = $('#ajax-delete-warnings').html();
+
+		// save copies of current data (to be shown in async)
+		let page_processed = this.page_processed;
+		let currentTask = this.currentTask;
+		let taskList = this.tasks.join(', ');
+		let close_data = this.close_data ? structuredClone(this.close_data) : {};
+		let user = mw.config.get('wgUserName');
+		let dt = new Date().toISOString().substring(0,10);
+
+		// close blocking process
+		DelReqHandler.prematureEnd();
+
+		// dialog
+		let sdd = this.createDialog({subclass:'c-fail', title:`Błąd przy zadaniu: ${currentTask}`});
+		sdd.body.style.maxWidth = '40em';
+		$(sdd.body).html(`${mw.html.escape(msg)} ${fix}
+			<br>${this.i18n.errorDetails}
+			<pre>${mw.html.escape(err)}</pre>
+			<p>${this.i18n.errorJustReload}
+			<hr>
+			<a class="u-reload" href="#">${this.i18n.reloadPage}</a>
+			&bull;
+			<a class="u-feedback" href="#">${this.i18n.errorReport}</a>
+			`.trim().replaceAll(/\n[\t ]+/g, '\n')
+		);
+		let feedbackPage = this.feedbackPage;
+		let feedbackPageUrl = mw.config.get('wgServer') + "/wiki/" + this.feedbackPage;
+		sdd.body.querySelector('.u-reload').href = location.href;
+		sdd.body.querySelector('.u-feedback').href = feedbackPageUrl;
 		
-		$('#feedbackContainerfeedback').click(function(e){
+		$('.u-feedback', sdd.body).click(function(e){
 			e.preventDefault();
 			
 			mw.loader.using('mediawiki.feedback', function(){
-				var feedback = new mw.Feedback({
-					bugsLink: mw.config.get('wgServer') + "/wiki/Dyskusja MediaWiki:Gadget-DelReqHandler.js",
-					title: new mw.Title("Dyskusja MediaWiki:Gadget-DelReqHandler.js")
+				let feedback = new mw.Feedback({
+					bugsLink: feedbackPageUrl,
+					title: new mw.Title(feedbackPage),
 				});
-				var user = mw.config.get('wgUserName');
-				var date = new Date().toISOString().substring(0,10);
+				let warningsInfo = '';
+				if (warningsHtml) {
+					warningsInfo = `Ostrzeżenia:\n${warningsHtml}`;
+				}
 				feedback.launch({
-					subject: 'Problem - ' + date + ' - ' + user,
-					message: 'Wyświetla mi błąd podczas usuwania "'+that.page_processed+'" na "'+that.subpage+'"\n<pre>'+err+'</pre>'
+					subject: 'Problem - ' + dt + ' - ' + user,
+					message: `
+						Pół-automatyczne zgłoszenie błędu podczas przetwarzania „${page_processed}”.
+						* Podstrona zgłoszenia: [[${close_data.subpage}]].
+						* Artykuł: ${close_data.articleTitle}.
+						* Akcja: ${close_data.fakeaction}.
+						* Błąd przy zadaniu: ${currentTask}.
+						* Zadania w kolejce: ${taskList}.
+						<pre>${err}</pre>
+						${warningsInfo}
+					`.trim().replaceAll(/\n[\t ]+/g, '\n'),
 				});
 			});
 		});
 
-		// Allow some time to read the message
-		if (this.templateAdded) setTimeout(function() {
-			this.reloadPage(true);
-		}, 5000);
+		sdd.show();
+		sdd.center({y:0});
 	},
 
 	there_are_warnings : false,
@@ -1305,7 +1364,12 @@ var DelReqHandler =
 		taskFailure : {
 		},
 		errorDetails          : "Szczegółowy opis błędu:",
-		errorReport           : "Prześlij zgłoszenie"
+		errorJustReload       : `
+			Uwaga! W większości wypadków błędy wynikają z tego, że ktoś inny zamykał to samo zgłoszenie co Ty. <strong>Odśwież stronę i spróbuj ponownie</strong>.
+			Prześlij zgłoszenie o błędzie jeśli po odświeżeniu nadal coś nie działa choć powinno.
+		`,
+		errorReport           : "Prześlij zgłoszenie",
+		reloadPage           : "Odśwież stronę",
 	}
 
 }; // End of DelReqHandler
