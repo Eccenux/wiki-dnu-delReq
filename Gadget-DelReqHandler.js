@@ -491,6 +491,12 @@ var DelReqHandler =
 
 	addKeepToTalk : function ()
 	{
+		if (!this.template_param) {
+			// back to removing next template
+			that.removeTemplate();
+			return;
+		}
+
 		var talk_title = this.findTalkPage(this.page_processed);
 		var text;
 		var that = this;
