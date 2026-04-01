@@ -63,8 +63,8 @@ var DelReqHandler =
 	close_draft_summary: 'Przeniesiono do brudnopisu.',
 	close_redir_summary: 'Przekierowano do innego artykułu.',
 
-	label_intro  : 'Podsumowanie (hasłowe)',
-	label_textbox  : 'Uzasadnienie',
+	label_intro  : 'Decyzja (hasłowe)',
+	label_textbox  : 'Uzasadnienie (podsumowanie dyskusji)',
 	label_close_submit  : 'Zapisz uzasadnienie',
 
 	// fail reporting
@@ -863,7 +863,7 @@ var DelReqHandler =
 		let artUrl = '/wiki/' + mw.util.wikiUrlencode(subpage);
 		let artEditUrl = '/wiki/' + mw.util.wikiUrlencode(subpage) + '?action=edit';
 		form.innerHTML = `
-			<div><a href="${artUrl}" target="_blank" title="${this.i18n.openInNewTab(subpage)}">${subpage}</a>
+			<div><a href="${artUrl}" target="_blank" title="${this.i18n.openInNewTab(subpage)}">${this.i18n.subpageLinkLabel(subpage)}</a>
 				[ <a href="${artEditUrl}" target="_blank" title="${this.i18n.editInNewTab(subpage)}">${this.i18n.edit}</a> ]
 			</div>
 			<label>${this.label_intro}:</label>
@@ -1398,6 +1398,7 @@ var DelReqHandler =
 		errorReport: "Prześlij zgłoszenie",
 		reloadPage: "Odśwież stronę",
 		edit: "edytuj",
+		subpageLinkLabel: (subpage) => `Podstrona poczekalni (${subpage.replace(/.+\//, '').replaceAll('_', ' ').replace(/([0-9]{2}):([^0-9])/, '$1 $2')})`,
 		savedPage: (subpage) => `Zapisano zmiany w „${subpage}”.`,
 		openInNewTab: (subpage) => `Otwórz podgląd w nowym oknie: ${subpage}.`,
 		editInNewTab: (subpage) => `Edytuj w nowym oknie: ${subpage}.`,
