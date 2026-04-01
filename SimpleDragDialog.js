@@ -97,9 +97,45 @@ class SimpleDragDialog {
 		sddContainer.appendChild(dialog);
 
 		this.makeDraggable(dialog, header);
+		if (this.isMobile()) {
+			this.enableDoubleTapMax(dialog, header);
+			dialog.style.left = '0';
+			dialog.style.right = '0';
+			dialog.style.top = '0';
+		}
 
 		return dialog;
 	}
+
+	isMobile() {
+		return window.innerWidth < 420;
+	}
+
+	/**
+	 * Adds double tap logic to window.
+	 * @param {HTMLElement} dialog The dialog to move.
+	 * @param {HTMLElement} header Tap/maximize handle.
+	 */
+	enableDoubleTapMax(dialog, header) {
+		const DOUBLE_TAP_DELAY = 300; // ms
+		let inTap = false;
+		let title = header.querySelector('span');
+		title.style.userSelect = 'none';
+		title.addEventListener("touchstart", (e) => {
+			if(!inTap) {
+				inTap = true;
+				setTimeout(() => {
+					inTap = false;
+				}, DOUBLE_TAP_DELAY);
+			} else {
+				e.preventDefault();
+				dialog.style.left = '0';
+				dialog.style.right = '0';
+				dialog.style.top = '0';
+			}
+		});
+	}
+
 	/**
 	 * Adds drag logic to window.
 	 * @param {HTMLElement} dialog The dialog to move.
@@ -110,14 +146,21 @@ class SimpleDragDialog {
 		let offsetX = 0;
 		let offsetY = 0;
 
-		header.addEventListener('mousedown', (e) => {
+		let title = header.querySelector('span');
+
+		// disable scroll
+		title.style.touchAction = 'none';
+
+		title.addEventListener('pointerdown', (e) => {
+			// prevent text selection / scrolling on touch
+			title.setPointerCapture(e.pointerId);
+
 			isDragging = true;
 			offsetX = e.clientX - dialog.offsetLeft;
 			offsetY = e.clientY - dialog.offsetTop;
-			document.body.style.userSelect = 'none';
 		});
 
-		document.addEventListener('mousemove', (e) => {
+		document.addEventListener('pointermove', (e) => {
 			if (!isDragging) return;
 			dialog.style.right = 'auto';
 			dialog.style.bottom = 'auto';
@@ -125,9 +168,10 @@ class SimpleDragDialog {
 			dialog.style.top = (e.clientY - offsetY) + 'px';
 		});
 
-		document.addEventListener('mouseup', () => {
+		document.addEventListener('pointerup', (e) => {
+			title.releasePointerCapture(e.pointerId);
+
 			isDragging = false;
-			document.body.style.userSelect = '';
 		});
 	}
 
