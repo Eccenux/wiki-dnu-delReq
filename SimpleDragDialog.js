@@ -67,6 +67,7 @@
 
 			const titleEl = document.createElement('span');
 			titleEl.textContent = title;
+			titleEl.className = 'u-title';
 
 			header.appendChild(titleEl);
 			header.appendChild(closeBtn);
@@ -154,11 +155,7 @@
 			let offsetX = 0;
 			let offsetY = 0;
 
-			let title = header.querySelector('span');
-
-			// disable scroll
-			title.style.touchAction = 'none';
-			title.style.flex = '1';
+			let title = header.querySelector('.u-title');
 
 			title.addEventListener('pointerdown', (e) => {
 				// prevent text selection / scrolling on touch
