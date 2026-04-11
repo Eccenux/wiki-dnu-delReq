@@ -4,6 +4,9 @@
 	 * Simple draggable dialog window.
 	 * 
 	 * To get an instance of this class use `dialog.uSdd`.
+	 * 
+	 * Usage info: SimpleDragDialog.md
+	 * https://github.com/Eccenux/wiki-dnu-delReq/blob/master/SimpleDragDialog.md
 	 */
 	class SimpleDragDialog {
 		constructor() {
@@ -74,7 +77,7 @@
 			body.className = 'u-body';
 
 			if (typeof content === 'string') {
-				body.innerHTML = content;
+				body.textContent = content;
 			} else {
 				body.appendChild(content);
 			}
@@ -109,12 +112,14 @@
 			return dialog;
 		}
 
+		/** @private */
 		isMobile() {
 			return window.innerWidth < 420;
 		}
 
 		/**
 		 * Adds double tap logic to window.
+		 * @private
 		 * @param {HTMLElement} dialog The dialog to move.
 		 * @param {HTMLElement} header Tap/maximize handle.
 		 */
@@ -140,6 +145,7 @@
 
 		/**
 		 * Adds drag logic to window.
+		 * @private
 		 * @param {HTMLElement} dialog The dialog to move.
 		 * @param {HTMLElement} header Drag handle.
 		 */
@@ -152,6 +158,7 @@
 
 			// disable scroll
 			title.style.touchAction = 'none';
+			title.style.flex = '1';
 
 			title.addEventListener('pointerdown', (e) => {
 				// prevent text selection / scrolling on touch
