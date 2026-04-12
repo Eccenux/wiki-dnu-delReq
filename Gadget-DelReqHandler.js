@@ -860,11 +860,9 @@ var DelReqHandler =
 		// prepare form
 		let sdd = this.createDialog({subclass:'c-edit', title:`${closeText} (${articleTitle})`});
 		let form = sdd.body.querySelector('form');
-		let artUrl = '/wiki/' + mw.util.wikiUrlencode(subpage);
-		let artEditUrl = '/wiki/' + mw.util.wikiUrlencode(subpage) + '?action=edit';
 		form.innerHTML = `
-			<div><a href="${artUrl}" target="_blank" title="${this.i18n.openInNewTab(subpage)}">${this.i18n.subpageLinkLabel(subpage)}</a>
-				[ <a href="${artEditUrl}" target="_blank" title="${this.i18n.editInNewTab(subpage)}">${this.i18n.edit}</a> ]
+			<div><a  class="u-subpage-view" href="#" target="_blank">view</a>
+				[ <a class="u-subpage-edit" href="#" target="_blank">${this.i18n.edit}</a> ]
 			</div>
 			<label>${this.label_intro}:</label>
 			<input type="text" class="u-intro u-input"></textarea>
@@ -876,6 +874,18 @@ var DelReqHandler =
 		`;
 		let intro = form.querySelector('.u-intro');
 		let textbox = form.querySelector('.u-textbox');
+
+		// unsafe link data filled safely
+		{
+			let link = form.querySelector('a.u-subpage-view');
+			link.title = this.i18n.openInNewTab(subpage);
+			link.href = '/wiki/' + mw.util.wikiUrlencode(subpage);
+			link.textContent = this.i18n.subpageLinkLabel(subpage);
+
+			link = form.querySelector('a.u-subpage-edit');
+			link.title = this.i18n.editInNewTab(subpage);
+			link.href = '/wiki/' + mw.util.wikiUrlencode(subpage) + '?action=edit';
+		}
 
 		// init form data
 		if (fakeaction === DelReqHandler.fakeaction_move_reanimation) {
@@ -929,6 +939,7 @@ var DelReqHandler =
 				<div class="u-actions">
 					<button class="u-done">OK</button>
 					<a class="u-reload" href="#">${this.i18n.reloadPage}</a>
+					<a class="u-subpage-view" href="#" target="_blank" style="display:none;">view</a>
 				</div>
 			`;
 			sdd.center();
@@ -936,7 +947,24 @@ var DelReqHandler =
 				sdd.dialog.remove();
 				this.reloadPage();
 			});
-			form.querySelector('.u-reload').href = location.href;
+			let refreshUrl = location.href.replace(/#.+/, '');
+			const isOnSubpage = mw.config.get('wgPageName') == subpage;
+			if (!isOnSubpage) {
+				let url = new URL(refreshUrl);
+				// add cache-buster param
+				url.searchParams.set('_c', Date.now());
+				// add text fragment
+				url.hash = `:~:text=${encodeURIComponent(articleTitle)}`;
+				refreshUrl = url.toString();
+			}
+			form.querySelector('.u-reload').href = refreshUrl;
+			if (!isOnSubpage) {
+				let link = form.querySelector('a.u-subpage-view');
+				link.title = this.i18n.openInNewTab(subpage);
+				link.href = '/wiki/' + mw.util.wikiUrlencode(subpage);
+				link.textContent = this.i18n.subpageLinkLabel(subpage);
+				link.style.display = '';
+			}
 		} catch (error) {
 			document.body.style.cursor = '';
 			let message = error.message;
