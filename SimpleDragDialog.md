@@ -103,12 +103,27 @@ Note: You should avoid using `innerHTML` for user data. Using `textContent` is s
 
 ### Close dialog
 
-Handling close event:
+Handling default close event (e.g. for default close button):
 ```js
 sdd.dialog.addEventListener('dialog:close', (e) => {
 	console.debug('Dialog closed:', e.detail.reason);
 });
 ```
+
+Custom close button:
+```js
+form.querySelector('.u-done').addEventListener('click', () => {
+	sdd.dialog.remove();
+});
+```
+
+If you are going to re-use the dialog you should hide it:
+```js
+form.querySelector('.u-done').addEventListener('click', () => {
+	sdd.hide();
+});
+```
+Using `show()/hide()` is useful when you want to keep the state of the form (i.e., preserve values entered by the user for the next time). You can also consider this when it takes a long time to initialize the dialog.
 
 ### Submit and close as a Promise
 
