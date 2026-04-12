@@ -6,6 +6,19 @@ Deployed as:
 https://pl.wikipedia.org/wiki/MediaWiki:Gadget-SimpleDragDialog.js
 https://pl.wikipedia.org/wiki/MediaWiki:Gadget-SimpleDragDialog.css
 
+<!-- TOC -->
+
+- [Create a dialog](#create-a-dialog)
+- [Showing the dialog](#showing-the-dialog)
+- [Centering the dialog](#centering-the-dialog)
+- [Elements](#elements)
+- [Events](#events)
+	- [Close dialog](#close-dialog)
+	- [Submit and close as a Promise](#submit-and-close-as-a-promise)
+- [Styles](#styles)
+
+<!-- /TOC -->
+
 ## Create a dialog
 
 Creating a dialog is pretty straight forward:
@@ -67,11 +80,12 @@ sdd.center({x:1, y:0});
 
 The dialog has some useful properties:
 
-| property       | CSS selector         |
-|----------------|----------------------|
-| `sdd.dialog`   | dialogClass (option) |
-| `sdd.header`   | `.u-header`          |
-| `sdd.body`     | `.u-body`            |
+| property       | CSS selector         | Notes                       |
+|----------------|----------------------|-----------------------------|
+| `sdd.dialog`   | dialogClass (option) | main container              |
+| `sdd.header`   | `.u-header`          | title and window buttons    |
+|                | `.u-title`           | also a drag handle          |
+| `sdd.body`     | `.u-body`            | body that can be replaced   |
 
 So you can skip content option in the `create()` and do initialization differently:
 ```js
@@ -84,3 +98,70 @@ So you can skip content option in the `create()` and do initialization different
 }
 ```
 Note: You should avoid using `innerHTML` for user data. Using `textContent` is safer because it helps prevent XSS and some errors.
+
+## Events
+
+### Close dialog
+
+Handling close event:
+```js
+sdd.dialog.addEventListener('dialog:close', (e) => {
+	console.debug('Dialog closed:', e.detail.reason);
+});
+```
+
+### Submit and close as a Promise
+
+By default, `sdd.create()` is not a Promise; it just returns a dialog for you to set up.
+
+When you are mostly done with the setup, you can create a Promise and wait for the SDD result like this:
+```js
+let result = await new Promise((resolve, reject) => {
+	// form submit
+	let submit = (e)=>{
+		e.preventDefault();
+		resolve('submit');
+	};
+	form.querySelector('.u-submit').addEventListener('click', submit);
+	form.addEventListener('submit', submit);
+
+	// standard close
+	sdd.dialog.addEventListener('dialog:close', (e) => {
+		resolve('cancel');
+	});
+
+	// now show the dialog
+	sdd.show();
+	sdd.center({x:1,y:0});
+});
+```
+
+What happens here?
+
+First, there is a common submit function used for both `form.submit` and any custom buttons. It calls `resolve` with the text `submit`, but you could return an object if you want.
+```js
+	let submit = (e)=>{
+		e.preventDefault();
+		resolve('submit'); // can return almost anything you want
+	};
+```
+
+Hook up the function. The example below assumes your form has `<input type="submit" class="u-submit">` or `<button class="u-submit">...</button>` or similar.
+```js
+	form.querySelector('.u-submit').addEventListener('click', submit);
+	form.addEventListener('submit', submit);
+```
+
+Note that dialog is shown within the Promise like this:
+```js
+	sdd.show();
+	sdd.center({x:1,y:0});
+```
+
+Keep in mind that any code after the Promise will not be executed until `resolve` or `reject` is called. In the example above, the browser will proceed only after the user submits the form or closes the dialog. This means you need to set up everything before the Promise or inside it.
+
+## Styles
+
+The dialog has basic styles built in (in `SimpleDragDialog.css`).
+
+For an example of custom look for form elements, see `DelReqHandler.css`.
