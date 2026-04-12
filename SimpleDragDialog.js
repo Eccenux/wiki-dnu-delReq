@@ -32,7 +32,7 @@
 		 * @param {Object} opt
 		 * @param {string} opt.title
 		 * @param {string|HTMLElement} opt.content
-		 * @param {string|HTMLElement} opt.dialogClass Extra class.
+		 * @param {string|HTMLElement} opt.dialogClass Extra class (or classes spearated by spaces).
 		 * @returns {HTMLElement} Dialog element.
 		 */
 		create({content = '', title = '', dialogClass = '', startHidden = true} = {}) {
@@ -44,7 +44,11 @@
 			}
 			dialog.classList.add('sdragdialog-dialog');
 			if (dialogClass) {
-				dialog.classList.add(dialogClass);
+				if (!dialogClass.includes(' ')) {
+					dialog.classList.add(dialogClass);
+				} else {
+					dialog.classList.add(...dialogClass.trim().split(/\s+/));
+				}
 			}
 
 			// self reference
