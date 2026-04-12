@@ -949,15 +949,14 @@ var DelReqHandler =
 			});
 			let refreshUrl = location.href.replace(/#.+/, '');
 			const isOnSubpage = mw.config.get('wgPageName') == subpage;
-			if (!isOnSubpage) {
-				let url = new URL(refreshUrl);
-				// add cache-buster param
-				url.searchParams.set('_c', Date.now());
-				// add text fragment
-				url.hash = `:~:text=${encodeURIComponent(articleTitle)}`;
-				refreshUrl = url.toString();
+			{
+				let link = form.querySelector('.u-reload');
+				link.href = refreshUrl;
+				link.addEventListener('click', (e) => {
+					e.preventDefault();
+					location.reload();
+				});
 			}
-			form.querySelector('.u-reload').href = refreshUrl;
 			if (!isOnSubpage) {
 				let link = form.querySelector('a.u-subpage-view');
 				link.title = this.i18n.openInNewTab(subpage);
