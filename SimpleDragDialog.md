@@ -33,10 +33,25 @@ Creating a dialog is pretty straight forward:
 		sdd.create({content:form, title});
 		return sdd;
 	}
+	//...
+
+// and then
+let sdd = gadget.createDialog();
+sdd.body.append('...');
+sdd.show();
 ```
 
 If you plan to add some CSS to your form you might want to add a `dialogClass` option in the `create` function, but you can also add a class to the form:
 ```js
+	// class added to the dialog
+	createDialog ({title='Dialog'}) {
+		let form = document.createElement('form');
+		let sdd = new SimpleDragDialog();
+		sdd.create({content:form, title, dialogClass='my-dialog-class'});
+		return sdd;
+	}
+
+	// class added to the form
 	createDialog ({title='Dialog'}) {
 		let form = document.createElement('form');
 		form.classList.add('u-fancy-form');
@@ -122,6 +137,11 @@ If you are going to re-use the dialog you should hide it:
 form.querySelector('.u-done').addEventListener('click', () => {
 	sdd.hide();
 });
+
+// note: you will need to use `removeOnClose:false` in the dialog creation too
+let sdd = new SimpleDragDialog();
+sdd.create({title:'Hello', content:form, removeOnClose:false});
+sdd.show();
 ```
 Using `show()/hide()` is useful when you want to keep the state of the form (i.e., preserve values entered by the user for the next time). You can also consider this when it takes a long time to initialize the dialog.
 

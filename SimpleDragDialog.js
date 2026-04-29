@@ -32,10 +32,13 @@
 		 * @param {Object} opt
 		 * @param {string} opt.title
 		 * @param {string|HTMLElement} opt.content
-		 * @param {string|HTMLElement} opt.dialogClass Extra class (or classes spearated by spaces).
+		 * @param {string} opt.dialogClass Extra class (or extra classes spearated by spaces).
+		 * @param {boolean} opt.startHidden [=true] You should start hidden if want to show the dialog later, when it's fully ready.
+		 * @param {boolean} opt.removeOnClose [=true] You probably don't want multiple hidden dialogs, so removal is good...
+		 * 		but if you manage duplicates, you might want to hide on close (removeOnClose:false ⇒ hide on close).
 		 * @returns {HTMLElement} Dialog element.
 		 */
-		create({content = '', title = '', dialogClass = '', startHidden = true} = {}) {
+		create({content = '', title = '', dialogClass = '', startHidden = true, removeOnClose = true} = {}) {
 			// container
 			const dialog = document.createElement('div'); // OR dialog?
 			this.dialog = dialog;
@@ -66,7 +69,11 @@
 				dialog.dispatchEvent(new CustomEvent('dialog:close', {
 					detail: { reason: 'button' },
 				}));
-				dialog.remove();
+				if (removeOnClose) {
+					dialog.remove();
+				} else {
+					dialog.uSdd.hide();
+				}
 			});
 
 			const titleEl = document.createElement('span');
