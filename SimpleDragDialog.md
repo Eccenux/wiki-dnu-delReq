@@ -24,7 +24,7 @@ https://pl.wikipedia.org/wiki/MediaWiki:Gadget-SimpleDragDialog.css
 Creating a dialog is pretty straight forward:
 ```js
 	/**
-	 * @private
+	 * A helper method in your gadget class.
 	 * @returns {SimpleDragDialog}
 	 */
 	createDialog ({title='Dialog'}) {
@@ -33,15 +33,16 @@ Creating a dialog is pretty straight forward:
 		sdd.create({content:form, title});
 		return sdd;
 	}
-	//...
-
-// and then
-let sdd = gadget.createDialog();
-sdd.body.append('...');
-sdd.show();
+	init () {
+		//...
+		// create, fill and show
+		let sdd = this.createDialog();
+		sdd.body.append('...');
+		sdd.show();
+	}
 ```
 
-If you plan to add some CSS to your form you might want to add a `dialogClass` option in the `create` function, but you can also add a class to the form:
+If you plan to add some CSS to your form you might want to pass a `dialogClass` option in the creation options:
 ```js
 	// class added to the dialog
 	createDialog ({title='Dialog'}) {
@@ -50,7 +51,9 @@ If you plan to add some CSS to your form you might want to add a `dialogClass` o
 		sdd.create({content:form, title, dialogClass='my-dialog-class'});
 		return sdd;
 	}
-
+```
+...but you might want to add a class to the inner form instead:
+```js
 	// class added to the form
 	createDialog ({title='Dialog'}) {
 		let form = document.createElement('form');
@@ -65,7 +68,7 @@ If you plan to add some CSS to your form you might want to add a `dialogClass` o
 
 By default create has an option `startHidden=true`. This is because you might want to prepare the dialog content before it is shown.
 
-So once your done creating the form contents you have to `show()` it:
+So once your done creating the form contents you typically have to `show()` it:
 ```js
 {
 	let sdd = new SimpleDragDialog();
@@ -74,11 +77,19 @@ So once your done creating the form contents you have to `show()` it:
 	sdd.center(); // optional
 }
 ```
+...but for simple messages you can use `startHidden:false`:
+```js
+{
+	let sdd = new SimpleDragDialog();
+	sdd.create({content:'Hi, world', title:'Hello', startHidden:false});
+	sdd.center(); // optional
+}
+```
 
 ## Centering the dialog
 
 By default the dialog is in the top right corner. You can change that with CSS for all your windows or with the center function:
-```
+```js
 // both X and Y axes
 sdd.center();
 sdd.center({x:1, y:1});
