@@ -1,10 +1,11 @@
+/* eslint-disable comma-dangle */
+/* eslint-disable no-var */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-useless-escape */
-/* eslint-disable array-bracket-newline */
-/* eslint-disable no-mixed-spaces-and-tabs */
 /* eslint-disable indent */
 /* global $, mw, OO */
 /* global moveToSandboxGadget */
+/* global SimpleDragDialog */
 // <nowiki>
 /**
   Support for quick deletions and closing of deletion requests at Polish Wikipedia.
@@ -57,9 +58,17 @@ var DelReqHandler =
 	close_no_result_summary : 'Nie osiągnięto konsensusu.',
 	close_eject_summary: 'Wycofano.',
 	close_move2repair_summary: 'Przeniesiono do reanimacji.',
+	close_move2repair_intro : 'Do naprawy:',
 	close_repaired_summary: 'Naprawiono.',
 	close_draft_summary: 'Przeniesiono do brudnopisu.',
 	close_redir_summary: 'Przekierowano do innego artykułu.',
+
+	label_intro  : 'Decyzja (hasłowe)',
+	label_textbox  : 'Uzasadnienie (podsumowanie dyskusji)',
+	label_close_submit  : 'Zapisz uzasadnienie',
+
+	// fail reporting
+	feedbackPage: "Dyskusja MediaWiki:Gadget-DelReqHandler.js",
 	// Note! Use undescore instead of space
 	deletion_request_pages : [
 		'Wikipedia:Poczekalnia/artykuły',
@@ -126,6 +135,9 @@ var DelReqHandler =
 			button.$element.click((e) => {
 				e.preventDefault();
 
+				$(dnuTemplate).addClass('dnu-clicked');
+				button.$element.addClass('dnu-clicked');
+
 				if(action == this.actionMap.redirect)
 				{
 					OO.ui.prompt( 'Podaj stronę docelową przekierowania', { textInput: { placeholder: 'Tytuł docelowy' } } ).done((result) => {
@@ -190,23 +202,41 @@ var DelReqHandler =
 		var items = [];
 	
 		if (isAdmin) {
-			items.push(this.createActionButton(this.actionMap.delete, {label: 'Usuń', icon: 'trash', flags: 'destructive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_del));
+			items.push(this.createActionButton(this.actionMap.delete
+				, {label: 'Usuń', title: 'Przewaga argumentów za usunięciem (usuwa artykuł, archiwizuje zgł., dodajesz werdykt).', icon: 'trash', flags: 'destructive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_close_del));
 		}
 	
 		if (!this.isSubpage('reanimacja', subpage)) {
-			items.push(this.createActionButton(this.actionMap.keep, {label: 'zostaw', icon: 'articleCheck', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_keep));
-			items.push(this.createActionButton(this.actionMap.noResult, {label: 'brak wyniku', icon: 'help', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_no_result));
-			items.push(this.createActionButton(this.actionMap.toArchive, {label: 'do arch.', icon: 'tray', flags: 'progressive', framed: false}, dnuTemplate, subpage, ''));
-			items.push(this.createActionButton(this.actionMap.reject, {label: 'wycofaj', icon: 'undo', flags: 'progressive', framed: false}, dnuTemplate, subpage, ''));
-			items.push(this.createActionButton(this.actionMap.draft, {label: 'brudnopis', icon: 'sandbox', flags: 'progressive', framed: false}, dnuTemplate, subpage, 'close_draft'));
-			items.push(this.createActionButton(this.actionMap.redirect, {label: 'redir', icon: 'articleRedirect', flags: 'progressive', framed: false}, dnuTemplate, subpage, 'close_redir'));
+			items.push(this.createActionButton(this.actionMap.keep
+				, {label: 'zostaw', title: 'Przewaga argumentów za zostawieniem (zostawia artykuł, archiwizuje zgł., dodajesz werdykt).', icon: 'articleCheck', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_close_keep));
+			items.push(this.createActionButton(this.actionMap.noResult
+				, {label: 'brak wyniku', title: 'Nierozstrzygnięte, brak konsensusu (zostawia na razie, archiwizuje zgł., dodajesz werdykt).', icon: 'help', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_close_no_result));
+			items.push(this.createActionButton(this.actionMap.toArchive
+				, {label: 'do arch.', title: 'Tylko archiwizuje zgłoszenie (nie zmienia artykuł!).', icon: 'tray', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, ''));
+			items.push(this.createActionButton(this.actionMap.reject
+				, {label: 'wycofaj', title: 'Wycofuje zgłoszenie (wycofuje szablon z artykułu, archiwizuje zgł.).', icon: 'undo', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, ''));
+			items.push(this.createActionButton(this.actionMap.draft
+				, {label: 'brudnopis', title: 'Przenosi do brudnopisu (zostawia u twórcy lub innych chętnych, archiwizuje zgł., dodajesz werdykt).', icon: 'sandbox', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, 'close_draft'));
+			items.push(this.createActionButton(this.actionMap.redirect
+				, {label: 'redir', title: 'Zmienia na przekierowanie/integruje, nie przenosi (artykuł podmienia na przekierowanie, archiwizuje zgł., dodajesz werdykt).', icon: 'articleRedirect', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, 'close_redir'));
 		} else {
-			items.push(this.createActionButton(this.actionMap.repaired, {label: 'naprawiono', icon: 'articleCheck', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_close_repaired));
+			items.push(this.createActionButton(this.actionMap.repaired
+				, {label: 'naprawiono', title: 'Pozytywne zakończenie (zostawia artykuł, archiwizuje zgł., dodajesz werdykt).', icon: 'articleCheck', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_close_repaired));
 		}
 	
-		if (this.isSubpage('artykuły', subpage) || this.isSubpage('biografie', subpage)) {
+		if (this.isSubpage('artykuły', subpage) || this.isSubpage('biografie', subpage) || mw.config.get('wgPageName').includes('/test_poczekalni/')) {
 			// icons?: clock, labFlask, ongoingConversation
-			items.push(this.createActionButton(this.actionMap.reanimation, {label: 'reanimacja', icon: 'labFlask', flags: 'progressive', framed: false}, dnuTemplate, subpage, this.fakeaction_move_reanimation));
+			items.push(this.createActionButton(this.actionMap.reanimation
+				, {label: 'reanimacja', title: 'Szansa na poprawki (przenosi do reanimacji, dodajesz info co naprawić).', icon: 'labFlask', flags: 'progressive', framed: false}
+				, dnuTemplate, subpage, this.fakeaction_move_reanimation));
 		}
 	
 		var buttonGroup = new OO.ui.ButtonGroupWidget({
@@ -242,16 +272,16 @@ var DelReqHandler =
 	 * 
 	 * Called when the user clicked one of the links.
 	 *  
-	 * @param {Number} action Which of the links has been pressed: see `actionMap`.
+	 * @param {number} action Which of the links has been pressed: see `actionMap`.
 	 * @param {Element} dnuTemplate Reference to lnDNU with article titles and action links.
-	 * @param {String} sub Subpage of the del request.
-	 * @param {String} close_href Edit link for the del req.
+	 * @param {string} subpage Subpage of the del request.
+	 * @param {string} fakeaction Action to make on close.
 	 * @returns 
 	 */
 	buttonClicked : function (action, dnuTemplate, subpage, fakeaction)
 	{
 		const articleTitleEl = dnuTemplate.querySelector('.sz-ln-dnu a:first-of-type');
-		const articleTitle = !articleTitleEl ? '' : articleTitleEl.textContent.trim();
+		const articleTitle = !articleTitleEl ? '' : articleTitleEl.textContent.trim(); // title of a specifc article (might be different then the subpage title)
 		if (!articleTitle.length) {
 			alert('Nie udało się znaleźć linka w szablonie lnDNU. Spróbuj odświeżyć stronę lub sprawdź czy szablon jest wypełniony poprawnie.');
 			console.error('[dnu] close failed.', {action, dnuTemplate, subpage});
@@ -262,7 +292,7 @@ var DelReqHandler =
 		this.subpage = subpage;
 		this.reason = '[[' + subpage + ']]';
 		this.keep_summary = 'Zostawiono po dyskusji: ' + this.reason;
-		this.close_href = mw.util.getUrl(subpage, {action:'edit', fakeaction});
+		this.close_data = {subpage , fakeaction, articleTitle};
 
 		this.pages_to_process = [articleTitle];
 
@@ -316,11 +346,14 @@ var DelReqHandler =
 			break;
 		}
 		
-		this.addTask('removeSubpage');
-		this.addTask('openSubpageForEdit');
-		this.addTask('reloadPage');
+		this.addTask('removeSubpage'); // usuń podstronę z listy
+		if (fakeaction) {
+			this.addTask('openSubpageForEdit'); // werdykt/info do dyskusji
+		}
 
-		this.nextTask();
+		// uruchom pierwsze zadanie (i potem zadania uruchamiają kolejne)
+		// ...czyli Promise w wersji daisy-chain (i tak, tak samo kruchy)
+		this.nextTask(); 
 	},
 	
 	moveToDraft : function ()
@@ -334,12 +367,13 @@ var DelReqHandler =
 			moveToSandboxGadget.open( function(status) {
 				if(status)
 				{
-				DelReqHandler.pages_to_process.push(moveToSandboxGadget.moveDestination);
-				DelReqHandler.nextTask();
+					DelReqHandler.pages_to_process.push(moveToSandboxGadget.moveDestination);
+					DelReqHandler.nextTask();
 				}
 				else
 				{
-				DelReqHandler.fail('Anulowano przenosiny');
+					DelReqHandler.prematureEnd();
+					OO.ui.alert('Anulowano przenosiny, nic nie zostało zmienione.');
 				}
 			}, DelReqHandler.reason);
 		});
@@ -457,6 +491,12 @@ var DelReqHandler =
 
 	addKeepToTalk : function ()
 	{
+		if (!this.template_param) {
+			// back to removing next template
+			that.removeTemplate();
+			return;
+		}
+
 		var talk_title = this.findTalkPage(this.page_processed);
 		var text;
 		var that = this;
@@ -520,6 +560,21 @@ var DelReqHandler =
 	archive_page : '',
 	//the subpage which is being moved to archive
 
+	skipWhenTesting : function()
+	{
+		// mock error (with some rand chance)
+		if (location.hash.includes('mock-error=1') && Math.random() < 1/2) {
+			return DelReqHandler.apiFail(403, 'Random error test', this.currentTask);
+		}
+
+		// skip when testing
+		console.warn('[dnu]', this.currentTask + ' skipped for user test-page');
+		// mock action
+		setTimeout(()=>{
+			this.nextTask();
+		}, 1000);
+	},
+
 	//Moves the given subpage to a temporary archive
 	//The archive should be at a page titled like the one with the deletion requests
 	//  ended with " załatwione 24".
@@ -527,6 +582,12 @@ var DelReqHandler =
 	addSubpageToArchive : function()
 	{
 		this.updateProgress('Dodaję podstronę do archiwum 24...');
+
+		// skip when testing
+		if (mw.config.get('wgCanonicalNamespace') === 'User') {
+			this.skipWhenTesting();
+			return;
+		}
 
 		this.parent_page = this.findParentPage(this.subpage);
 		this.archive_page = this.parent_page + ' załatwione 24';
@@ -583,9 +644,15 @@ var DelReqHandler =
 	{
 		this.updateProgress('Dodaję podstronę do stolika reanimacja...');
 
+		// skip when testing
+		if (mw.config.get('wgCanonicalNamespace') === 'User') {
+			this.skipWhenTesting();
+			return;
+		}
+
 		this.parent_page = this.findParentPage(this.subpage);
 		this.to_page = 'Wikipedia:Poczekalnia/reanimacja';
-		
+
 		var that = this;
 		
 		this.api.edit(
@@ -627,6 +694,13 @@ var DelReqHandler =
 	removeSubpage : function()
 	{
 		this.updateProgress();
+
+		// skip when testing
+		if (mw.config.get('wgCanonicalNamespace') === 'User') {
+			this.skipWhenTesting();
+			return;
+		}
+
 		var that = this;
 
 		this.api.edit(
@@ -694,106 +768,337 @@ var DelReqHandler =
 	*/
 	maybeSetupForm : function()
 	{
-		var param = mw.util.getParamValue ('fakeaction');
+		var param = mw.util.getParamValue ('fakeaction'); // close type
 		if (param == null)
 			return;
 
-		var summary = null;
-		var result_param = null;
+		var articleTitle = mw.util.getParamValue ('articleTitle'); // title of a specifc article (might be different then the subpage title)
+
+		alert('Ta funkcja już nie funkcjonuje (:');
+	},
+
+	/**
+	 * Prepare closing info.
+	 * 
+	 * @param {string} fakeaction Close type (DelReqHandler.fakeaction_*).
+	 * @returns {summary, resultParam}
+	 */
+	closingMapping : function(fakeaction)
+	{
+		let summary = null;
+		let resultParam = null;
 		
-		switch(param)
+		switch(fakeaction)
 		{
 			case DelReqHandler.fakeaction_close_del:
 				summary = DelReqHandler.close_del_summary;
-				result_param = 'usunięto';
+				resultParam = 'usunięto';
 			break;
 			
 			case DelReqHandler.fakeaction_close_keep:
 				summary = DelReqHandler.close_keep_summary;
-				result_param = 'zostawiono';
+				resultParam = 'zostawiono';
 			break;
 			
 			case DelReqHandler.fakeaction_close_no_result:
 				summary = DelReqHandler.close_no_result_summary;
-				result_param = 'brak wyniku';
+				resultParam = 'brak wyniku';
 			break;
 			
 			case DelReqHandler.fakeaction_close_repaired:
 				summary = DelReqHandler.close_repaired_summary;
-				result_param = 'naprawiono';
+				resultParam = 'naprawiono';
 			break;
 			
 			case DelReqHandler.fakeaction_close_eject:
 				summary = DelReqHandler.close_eject_summary;
-				result_param = 'wycofano';
+				resultParam = 'wycofano';
 			break;
 			
 			case 'close_draft':
 				summary = DelReqHandler.close_draft_summary;
-				result_param = 'zostawiono';//dodać do lnDNU
+				resultParam = 'zostawiono';//dodać do lnDNU
 			break;
 			
 			case 'close_redir':
 				summary = DelReqHandler.close_redir_summary;
-				result_param = 'zostawiono';//dodać do lnDNU
+				resultParam = 'zostawiono';//dodać do lnDNU
 			break;
 
 			case DelReqHandler.fakeaction_move_reanimation:
-				//summary = DelReqHandler.close_move2repair_summary;
-				result_param = 'reanimacja';
+				summary = DelReqHandler.close_move2repair_summary;
+				resultParam = 'reanimacja';
 			break;
 
 		}
-		
-		var $summary = $('#wpSummary');
-		let getMobileArea = () => document.querySelector('#wikitext-editor');
-		let textbox = document.editform && document.editform.wpTextbox1 ? document.editform.wpTextbox1 : getMobileArea();
 
-		// jeśli nie ma, to zakładamy, że musimy poczekać na mobilny edytor
-		if (!textbox) {
-			var interval = 200, limit = 40, overlimit = function() {
-				console.error('[dnu] textbox is undefined, auto-close summary not possible');
-				alert(JSON.stringify(summary, result_param));
-			};
-			waitForCondition(getMobileArea, () => {
-				let textbox = document.querySelector('#wikitext-editor');
-				this.setupForm($summary, textbox, summary, result_param);
-			}, interval, limit, overlimit);
-			return;
-		}
-
-		this.setupForm($summary, textbox, summary, result_param);
+		return {summary, resultParam};
 	},
-	/** Do actual setup of the edit textbox (when closing). */
-	setupForm: function($summary, textbox, summary, result_param) {
 
-		if (summary !== null && result_param !== null) {
-			$summary.val(summary);
-			
-			// Note: The period should follow the bold text, so mobile keyboards switch to sentence-begin mode (capitalize the first letter).
-			let text = textbox.value + '\n----\n\'\'\'' + summary.replace(/\.$/, '') + '\'\'\'.  \~\~\~\~';
-			text = text.replace(/(\{\{lnDNU)\|rezultat=[^\|]+\|data zakończenia=[^\|]+/g, '$1');
-			text = text.replace(/(\{\{lnDNU)/gi, '$1|rezultat=' + result_param + '|data zakończenia=' + this.formatDate("YYYY-MM-DD"));
-			textbox.value = text;	
+	/**
+	 * Prepare closing edit for the article discussion.
+	 * 
+	 * Major steps:
+	 * 1. Read current version of the discussion.
+	 * 2. Allow closing user to add a comment to predefined message.
+	 * 	`'''Predefined'''. comment ––signature`.
+	 * 3. Add technical reason to lnDNU, e.g.:
+	 * 	`lnDNU|rezultat=zostawiono|data zakończenia={teraz}`.
+	 * 4. Add closing comment with predefined summary.
+	 * 
+	 * @param {string} subpage The article discussion.
+	 * @param {string} fakeaction Close type (DelReqHandler.fakeaction_*).
+	 * @param {string} articleTitle Title of the article.
+	 * @returns 
+	 */
+	closingEditOpen : async function({subpage, fakeaction, articleTitle})
+	{
+		let {summary, resultParam} = this.closingMapping(fakeaction);
 
-			// Don't close the window so the user can add a comment.
-			if (text.scrollHeight > text.clientHeight) {
-				text.scrollTop = text.scrollHeight - text.clientHeight;
-			}
-			textbox.focus();
-		} else if (result_param === 'reanimacja') {
-			$summary.val(DelReqHandler.close_move2repair_summary);
-			
-			let text = textbox.value + '\n</div>\n\n\'\'\'Do naprawy:\'\'\'\n\* ...\n\* ...\n\~\~\~\~';
-			text = text.replace(/(\}\})(\n+[^\n:])/, '$1\n\n{{licznik czasu|zdarzenie=Czas przewidziany na reanimację|start={{subst:#timel:Y-m-d H:i:s}}|dni=60}}\n\n<div style="padding:20px; background:#dee; border:1px solid #aaa;">\n$2');
-			textbox.value = text;	
+		let closeText = summary.replace(/\.$/, '');
 
-			// Don't close the window so the user can add a comment.
-			if (text.scrollHeight > text.clientHeight) {
-				text.scrollTop = text.scrollHeight - text.clientHeight;
-			}
-			textbox.focus();
+		// prepare form
+		let sdd = this.createDialog({subclass:'c-edit', title:`${closeText} (${articleTitle})`});
+		let form = sdd.body.querySelector('form');
+		form.innerHTML = `
+			<div><a  class="u-subpage-view" href="#" target="_blank">view</a>
+				[ <a class="u-subpage-edit" href="#" target="_blank">${this.i18n.edit}</a> ]
+			</div>
+			<label>${this.label_intro}:</label>
+			<input type="text" class="u-intro u-input"></textarea>
+
+			<label>${this.label_textbox}:</label>
+			<textarea class="u-textbox"></textarea>
+
+			<input type="submit" class="u-submit" value="${this.label_close_submit}">
+		`;
+		let intro = form.querySelector('.u-intro');
+		let textbox = form.querySelector('.u-textbox');
+
+		// unsafe link data filled safely
+		{
+			let link = form.querySelector('a.u-subpage-view');
+			link.title = this.i18n.openInNewTab(subpage);
+			link.href = '/wiki/' + mw.util.wikiUrlencode(subpage);
+			link.textContent = this.i18n.subpageLinkLabel(subpage);
+
+			link = form.querySelector('a.u-subpage-edit');
+			link.title = this.i18n.editInNewTab(subpage);
+			link.href = '/wiki/' + mw.util.wikiUrlencode(subpage) + '?action=edit';
 		}
+
+		// init form data
+		if (fakeaction === DelReqHandler.fakeaction_move_reanimation) {
+			intro.value = DelReqHandler.close_move2repair_intro;
+			textbox.value = '\* ...\n\* ...\n\~\~\~\~';
+		} else {
+			intro.value = closeText;
+			textbox.value = '  —\~\~\~\~';
+		}
+		
+		// wait for submit/close
+		let result = await new Promise((resolve, reject) => {
+			let submit = (e)=>{
+				e.preventDefault();
+				document.body.style.cursor = 'wait';
+				resolve('submit');
+			};
+			form.querySelector('.u-submit').addEventListener('click', submit);
+			form.addEventListener('submit', submit);
+
+			sdd.dialog.addEventListener('dialog:close', (e) => {
+				console.debug('[dnu] Dialog closed:', e.detail.reason);
+				resolve('cancel');
+			});
+
+			sdd.show();
+			sdd.center({x:1,y:0});
+		});
+		if (result !== 'submit') {
+			document.body.style.cursor = '';
+			return false;
+		}
+		let formData = {
+			subpage,
+			articleTitle,
+			summary,
+			resultParam,
+			intro: intro.value,
+			message: textbox.value,
+		};
+		console.debug('[dnu]', result, formData);
+		try {
+			let warnings = await this.closingEditSubmit(formData);
+			document.body.style.cursor = '';
+			if (warnings.length) {
+				alert(warnings.join('\n\n'));
+			}
+			// close after edit is done
+			form.innerHTML = `
+				<div>${this.i18n.savedPage(subpage)}</div>
+				<div class="u-actions">
+					<button class="u-done">OK</button>
+					<a class="u-reload" href="#">${this.i18n.reloadPage}</a>
+					<a class="u-subpage-view" href="#" target="_blank" style="display:none;">view</a>
+				</div>
+			`;
+			sdd.center();
+			form.querySelector('.u-done').addEventListener('click', () => {
+				sdd.dialog.remove();
+				this.reloadPage();
+			});
+			let refreshUrl = location.href.replace(/#.+/, '');
+			const isOnSubpage = mw.config.get('wgPageName') == subpage;
+			{
+				let link = form.querySelector('.u-reload');
+				link.href = refreshUrl;
+				link.addEventListener('click', (e) => {
+					e.preventDefault();
+					location.reload();
+				});
+			}
+			if (!isOnSubpage) {
+				let link = form.querySelector('a.u-subpage-view');
+				link.title = this.i18n.openInNewTab(subpage);
+				link.href = '/wiki/' + mw.util.wikiUrlencode(subpage);
+				link.textContent = this.i18n.subpageLinkLabel(subpage);
+				link.style.display = '';
+			}
+		} catch (error) {
+			document.body.style.cursor = '';
+			let message = error.message;
+			if (error.cause && error.cause.message) {
+				message += '\n\nPrzyczyna błędu: ' + error.cause.message;
+			}
+			alert(message);
+		}
+	},
+	/**
+	 * Do actual submit of the closing edit.
+	 * @param {string} subpage The disscussion page to edit (with lnDNU).
+	 * @param {string} intro The verdict in short (to be shown in bold).
+	 * @param {string} message The verdict's justification.
+	 * @param {string} summary Summary to add in edit.
+	 * @param {string} resultParam One of predefined results for `lnDNU`.
+	 * @param {string} articleTitle Article title for `lnDNU`.
+	 */
+	closingEditSubmit: async function({subpage, intro, message, summary, resultParam, articleTitle}) {
+		let text;
+		let warnings = [];
+		text = await this.getPageContent(subpage);
+		if (!text) {
+			throw new Error(`Błąd odczytu strony: ${subpage}`);
+		}
+		text = text.trim();
+		intro = intro.trim();
+		message = message.trim();
+
+		let isMulti = (text.match(/{{lnDNU\|/g) || []).length > 1; // the report concerncs multiple pages (articles, templates etc)
+		if (typeof articleTitle !== 'string') {
+			articleTitle = '';
+		}
+
+		if (resultParam !== 'reanimacja') {
+
+			if (isMulti && articleTitle.length) {
+				let noWikiTag = 'nowiki';
+				intro += ` (''<${noWikiTag}>${articleTitle}</${noWikiTag}>'')`;
+			}
+
+			let today = this.formatDate("YYYY-MM-DD");
+			let parmasToAdd = '|rezultat=' + resultParam + '|data zakończenia=' + today;
+			
+			text += '\n----\n\'\'\'' + intro + '\'\'\'. ' + message;
+			// single lnDNU
+			if (!isMulti) {
+				text = text.replace(/(\{\{lnDNU)\|rezultat=[^\|]+\|data zakończenia=[^\|]+/g, '$1');
+				text = text.replace(/(\{\{lnDNU)/gi, '$1' + parmasToAdd);
+			// multi lnDNU
+			} else {
+				let added = false;
+				// note, regexp assumes lnDNU is a single line tpl (which should be the case)
+				text = text.replace(/(\{\{lnDNU)(\|.+)(\}\}|\n)/g, (a, start, params, end) => {
+					// skip already closed
+					if (params.includes('|rezultat=')) {
+						//console.log('[dnu]', 'already done:', a);
+						return a; // no change
+					}
+					// skip not-mine
+					if (articleTitle.length && !params.includes('|'+articleTitle+'|')) {
+						//console.log('[dnu]', 'skip:', {params, articleTitle});
+						return a; // no change
+					}
+					//console.log('[dnu]', 'MINE!:', {params, articleTitle});
+
+					// remove just in case
+					params = params.replace(/\|rezultat=[^\|]+\|data zakończenia=[^\|]+/g, '');
+					// new params
+					params = parmasToAdd + params;
+					added = true;
+
+					return start + params + end;
+				});
+				if (!added) {
+					warnings.push('Uwaga! Nie udało się znaleźć odpowiedniego {{lnDNU}} i zmienić jego parametry. Informacja została dodana w edycji.');
+					text += `\n<!--
+					|	Uwaga! Nie udało się znaleźć odpowiedniego {{lnDNU}} i zmienić jego parametry.
+					|	Powtórzona akcja?
+					|
+					|	Upewnij się, że zamykasz dobre zgłoszenie (szukano {{lnDNU}} dotyczącego: „${articleTitle.length ? articleTitle : '-'}”).
+					|	Jeśli tak, to dodaj ręcznie parametry do odpowiedniego {{lnDNU}}:
+					|	${parmasToAdd}
+					|-->`.replace(/\n\s+\|/g, '\n');
+				}
+			}
+		} else {
+			let added = false;
+			let licznik = `{{licznik czasu|zdarzenie=Czas przewidziany na reanimację|start={{subst:#timel:Y-m-d H:i:s}}|dni=60|rgz=m}}`;
+			let frameStart = `<div style="padding:1em; background:#dee; color:black; border:1px solid #aaa;">`;
+			let frameEnd = `</div>`;
+			text = text.replace(/([\s\S]+\{\{lnDNU.+\}\})([\s\S]+)/, (all, preambule, discussion)=> {
+				all = preambule.trim();
+				all += '\n\n' + licznik;
+				all += '\n\n' + frameStart + '\n';
+				all += discussion.trim();
+				all += '\n' + frameEnd;
+				all += '\n\n\'\'\'' + intro + '\'\'\'\n' + message;
+				added = true;
+				return all;
+			});
+			if (!added) {
+				warnings.push('Uwaga! Nie udało się znaleźć {{lnDNU}} i nie udało się odpowiednio otoczyć dyskusji ramką. Licznik i podsumowanie naprawy zostały jednak dodane na końcu.');
+				text += '\n\n' + licznik;
+				text += '\n\n\'\'\'' + intro + '\'\'\'\n' + message;
+				text += `\n<!--
+				|	Uwaga! Nie udało się dodać ramki. Dodaj ręcznie:
+				|   ${frameStart}${frameEnd}
+				|-->`.replace(/\n\s+\|/g, '\n');
+			}
+		}
+
+		try {
+			await this.api.postWithEditToken({action: 'edit', title: subpage, summary, text});
+		} catch (error) {
+			console.error('[dnu] save closing edit failed:', error);
+			throw new Error(`Błąd zapisu strony: ${subpage}`, {
+				cause: error,
+			});
+		}
+
+		return warnings;
+	},
+
+	/**
+	 * @private
+	 * @returns {SimpleDragDialog}
+	 */
+	createDialog: function ({subclass='', title=''}) {
+		let className = 'delreqhandler-sdd-' + subclass;
+		let sdd;
+		let form = document.createElement('form');
+		sdd = new SimpleDragDialog();
+		sdd.create({content:form, title, dialogClass:className});
+		return sdd;
 	},
 
 	deletePages : function()
@@ -821,21 +1126,16 @@ var DelReqHandler =
 	},
 
 
-	openSubpageForEdit : function()
+	openSubpageForEdit : async function()
 	{
-		this.updateProgress('Otwieram podstronę zgłoszenia do edycji...');
-		if(!window.DelReqPopup)
-		{
-			//user preferences - open edit in the same window
-			location.href = this.close_href;
-		}
-		else
-		{
-			window.open(this.close_href, '_blank');
-			this.windowManager.closeWindow( this.progressDialog );
-			document.body.style.cursor = '';
-		}
-		this.nextTask();
+		this.updateProgress('Otwieram formularz zamykania...');
+
+		//await this.closingEditOpen(this.close_data); // można by czekać, ale właściwie po co...
+		this.closingEditOpen(this.close_data);
+
+		setTimeout(()=>{
+			this.nextTask();
+		}, 1000);
 	},
 
 	/**
@@ -843,9 +1143,16 @@ var DelReqHandler =
 	* force - if true, the page will be reloaded no matter user preferences
 	**/
 	reloadPage : function (force) {
-		if (!force && (!window.DelReqPopup || window.DelReqDontReload))
+		if (!force && !window.DelReqReload) {
 			//user preferences - don't reload when finished
 			return;
+		}
+
+		// check if forms are still open
+		let sdd = new SimpleDragDialog();
+		if (sdd.dialogsCount()) {
+			return;
+		}
 
 		if (this.there_are_warnings === true)
 		{
@@ -863,6 +1170,21 @@ var DelReqHandler =
 			    replace(/\(/g, '%28').replace(/\)/g, '%29').
 			    replace(/\%2F/g, '/');
 		location.href = mw.config.get('wgServer') + mw.config.get('wgArticlePath').replace("$1", title);
+	},
+
+	/** @returns {string} wikitext or false */
+	getPageContent: async function (pageName) {
+		try {
+			let data = await this.api.get({
+				action: 'parse',
+				page: pageName,
+				prop: 'wikitext',
+			});
+			return data.parse.wikitext['*'];
+		} catch(e) {
+			console.error('[dnu]', 'Failed to getPageContent', e);
+			return false;
+		}
 	},
 
 	deletePage : function (page, reason, callback, must_exists)
@@ -891,6 +1213,11 @@ var DelReqHandler =
 		this.tasks.push( task );
 	},
 	nextTask : function () {
+		if (!this.tasks.length) {
+			// done
+			this.prematureEnd();
+			return;
+		}
 		var task = this.currentTask = this.tasks.shift();
 		try {
 			this[task]();
@@ -942,6 +1269,23 @@ var DelReqHandler =
 
 		this.nextTask();
 	},
+	/**
+		Cleanup without reloading.
+	*/
+	prematureEnd : function () {
+		this.tasks = [];
+
+		document.body.style.cursor = '';
+
+		if ( this.windowManager ) {
+			this.windowManager.closeWindow( this.progressDialog ).closed.then( () => {
+				this.windowManager.removeWindows( [ this.progressDialog ] );
+				this.windowManager.$element.remove();
+				this.windowManager = null;
+				this.progressDialog = null;
+			} );
+		}
+	},
 
 	updateProgress : function (message) {
 		$('#feedbackContainer').html(message);
@@ -966,40 +1310,77 @@ var DelReqHandler =
 	},
 
 	/**
-      * Crude error handler. Just throws an alert at the user and (if we managed to
-      * add the {delete} tag) reloads the page.
-      **/
+	 * Error handler for in-process failures.
+	 * 
+	 * Note! This is non-blocking, but will clear tasks effectively ending the process.
+	 * 
+	 * @param {string} err 
+	 */
 	fail : function ( err ) {
-		var that = this;
-		document.body.style.cursor = 'default';
-		var msg = this.i18n.taskFailure[this.currentTask] || this.i18n.genericFailure;
-		var fix = '';//(this.templateAdded ? this.i18n.completeRequestByHand : this.i18n.addTemplateByHand );
+		let msg = this.i18n.taskFailure[this.currentTask] || this.i18n.genericFailure;
+		let fix = '';//(this.templateAdded ? this.i18n.completeRequestByHand : this.i18n.addTemplateByHand );
 
-		$('#feedbackContainer').html(msg + " " + fix + "<br>" + this.i18n.errorDetails + "<hr>" + mw.html.escape(err) + "<hr><a id=\"feedbackContainerfeedback\" href=\"" + mw.config.get('wgServer') + "/wiki/Dyskusja MediaWiki:Gadget-DelReqHandler.js\">" + this.i18n.errorReport +"</a>");
-		$('#feedbackContainer').addClass('ajaxDeleteError');
-		this.progressDialog.$body.resize();
+		let warningsHtml = $('#ajax-delete-warnings').html();
+
+		// save copies of current data (to be shown in async)
+		let page_processed = this.page_processed;
+		let currentTask = this.currentTask;
+		let taskList = this.tasks.join(', ');
+		let close_data = this.close_data ? structuredClone(this.close_data) : {};
+		let user = mw.config.get('wgUserName');
+		let dt = new Date().toISOString().substring(0,10);
+
+		// close blocking process
+		DelReqHandler.prematureEnd();
+
+		// dialog
+		let sdd = this.createDialog({subclass:'c-fail', title:`Błąd przy zadaniu: ${currentTask}`});
+		sdd.body.style.maxWidth = '40em';
+		$(sdd.body).html(`${mw.html.escape(msg)} ${fix}
+			<br>${this.i18n.errorDetails}
+			<pre>${mw.html.escape(err)}</pre>
+			<p>${this.i18n.errorJustReload}
+			<hr>
+			<a class="u-reload" href="#">${this.i18n.reloadPage}</a>
+			&bull;
+			<a class="u-feedback" href="#">${this.i18n.errorReport}</a>
+			`.trim().replaceAll(/\n[\t ]+/g, '\n')
+		);
+		let feedbackPage = this.feedbackPage;
+		let feedbackPageUrl = mw.config.get('wgServer') + "/wiki/" + this.feedbackPage;
+		sdd.body.querySelector('.u-reload').href = location.href;
+		sdd.body.querySelector('.u-feedback').href = feedbackPageUrl;
 		
-		$('#feedbackContainerfeedback').click(function(e){
+		$('.u-feedback', sdd.body).click(function(e){
 			e.preventDefault();
 			
 			mw.loader.using('mediawiki.feedback', function(){
-				var feedback = new mw.Feedback({
-					bugsLink: mw.config.get('wgServer') + "/wiki/Dyskusja MediaWiki:Gadget-DelReqHandler.js",
-					title: new mw.Title("Dyskusja MediaWiki:Gadget-DelReqHandler.js")
+				let feedback = new mw.Feedback({
+					bugsLink: feedbackPageUrl,
+					title: new mw.Title(feedbackPage),
 				});
-				var user = mw.config.get('wgUserName');
-				var date = new Date().toISOString().substring(0,10);
+				let warningsInfo = '';
+				if (warningsHtml) {
+					warningsInfo = `Ostrzeżenia:\n${warningsHtml}`;
+				}
 				feedback.launch({
-					subject: 'Problem - ' + date + ' - ' + user,
-					message: 'Wyświetla mi błąd podczas usuwania "'+that.page_processed+'" na "'+that.subpage+'"\n<pre>'+err+'</pre>'
+					subject: 'Problem - ' + dt + ' - ' + user,
+					message: `
+						Pół-automatyczne zgłoszenie błędu podczas przetwarzania „${page_processed}”.
+						* Podstrona zgłoszenia: [[${close_data.subpage}]].
+						* Artykuł: ${close_data.articleTitle}.
+						* Akcja: ${close_data.fakeaction}.
+						* Błąd przy zadaniu: ${currentTask}.
+						* Zadania w kolejce: ${taskList}.
+						<pre>${err}</pre>
+						${warningsInfo}
+					`.trim().replaceAll(/\n[\t ]+/g, '\n'),
 				});
 			});
 		});
 
-		// Allow some time to read the message
-		if (this.templateAdded) setTimeout(function() {
-			this.reloadPage(true);
-		}, 5000);
+		sdd.show();
+		sdd.center({y:0});
 	},
 
 	there_are_warnings : false,
@@ -1037,43 +1418,22 @@ var DelReqHandler =
 		taskFailure : {
 		},
 		errorDetails          : "Szczegółowy opis błędu:",
-		errorReport           : "Prześlij zgłoszenie"
+		errorJustReload       : `
+			Uwaga! W większości wypadków błędy wynikają z tego, że ktoś inny zamykał to samo zgłoszenie co Ty. <strong>Odśwież stronę i spróbuj ponownie</strong>.
+			Prześlij zgłoszenie o błędzie jeśli po odświeżeniu nadal coś nie działa choć powinno.
+		`,
+		errorReport: "Prześlij zgłoszenie",
+		reloadPage: "Odśwież stronę",
+		edit: "edytuj",
+		subpageLinkLabel: (subpage) => `Podstrona poczekalni (${subpage.replace(/.+\//, '').replaceAll('_', ' ').replace(/([0-9]{2}):([^0-9])/, '$1 $2')})`,
+		savedPage: (subpage) => `Zapisano zmiany w „${subpage}”.`,
+		openInNewTab: (subpage) => `Otwórz podgląd w nowym oknie: ${subpage}.`,
+		editInNewTab: (subpage) => `Edytuj w nowym oknie: ${subpage}.`,
 	}
 
 }; // End of DelReqHandler
 
 DelReqHandler.beginLoading();
 
-/** Wait for condition (see: pendingChangesHelper). */
-function waitForCondition(condition, callback, interval, limit, overlimit) {
-	if (condition()) {
-		callback();
-	} else {
-		if (typeof interval !== 'number') {
-			interval = 200;
-		}
-		if (typeof limit !== 'number') {
-			limit = false;
-		}
-		let intervalId = setInterval(function() {
-			// console.log('waiting...');
-			if (condition()) {
-				//console.log('done');
-				clearInterval(intervalId);
-				callback();
-			}
-			if (limit !== false) {
-				limit--;
-				if (limit <= 0) {
-					clearInterval(intervalId);
-					if (typeof overlimit === 'function') {
-						overlimit();
-					}
-				}
-			}
-		}, interval);
-	}
-}
-
-})
+});
 // </nowiki>

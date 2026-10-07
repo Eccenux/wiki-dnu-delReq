@@ -1,0 +1,35 @@
+.sdragdialog-dialog {
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	z-index: 400;
+	min-width: 250px;
+	max-height: 100vh;
+	overflow-y: scroll;
+
+	background: var(--background-color-base, #fff);
+	color: var(--color-base, #111);
+	border: 1px solid #999;
+	box-shadow: 0 4px 10px var(--box-shadow-color-alpha-base, rgba(0,0,0,0.06));
+
+	.u-header {
+		padding: 6px 10px;
+		background: var(--background-color-neutral, #eaecf0);
+		color: var(--color-base, #111);
+
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+
+		.u-title {
+			flex: 1;
+			cursor: move;
+			/* disable scroll */
+			touch-action: none;
+		}
+	}
+	.u-body {
+		padding: 10px;
+		font-size: 14px;
+	}
+}
